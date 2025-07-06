@@ -444,4 +444,148 @@ export const getFinPriseChargeMotif = (reservationId: number): string => {
   ];
   
   return motifs[reservationId % motifs.length];
-}; 
+};
+
+// Templates de documents
+export const documentTemplates = [
+  {
+    id: 1,
+    nom: "Bon de réservation",
+    type: "bon_reservation" as const,
+    description: "Document de confirmation de réservation",
+    contenu: `BON DE RÉSERVATION
+
+EN-TÊTE EXPÉDITEUR:
+Voyages Services Plus
+Tour Liberty 17 place des Reflets
+92400 Courbevoie
+reservation@vesta-operateursolidaire.fr
+
+INFORMATIONS DESTINATAIRE:
+Nom: {{nom_usager}}
+Établissement: {{nom_hotel}}
+
+DÉTAILS DE LA RÉSERVATION:
+Numéro de dossier: {{numero_dossier}}
+Date d'arrivée: {{date_arrivee}}
+Date de départ: {{date_depart}}
+Nombre de nuits: {{nombre_nuits}}
+Nombre de personnes: {{nombre_personnes}}
+Montant total: {{montant_total}}€
+Prescripteur: {{prescripteur}}
+Statut: {{statut}}
+
+INFORMATIONS COMPLÉMENTAIRES:
+Téléphone: {{telephone}}
+Email: {{email}}
+Adresse: {{adresse}}
+Ville: {{ville}}
+Code postal: {{code_postal}}
+Handicap: {{handicap}}
+Accompagnement: {{accompagnement}}
+Nombre d'accompagnants: {{nombre_accompagnants}}
+Notes: {{notes}}
+
+Date de génération: {{date_generation}}`,
+    variables: [
+      { nom: "nom_usager", description: "Nom de l'usager", type: "texte" as const, obligatoire: true },
+      { nom: "nom_hotel", description: "Nom de l'hôtel", type: "texte" as const, obligatoire: true },
+      { nom: "date_arrivee", description: "Date d'arrivée", type: "date" as const, obligatoire: true },
+      { nom: "date_depart", description: "Date de départ", type: "date" as const, obligatoire: true },
+      { nom: "nombre_nuits", description: "Nombre de nuits", type: "nombre" as const, obligatoire: true },
+      { nom: "montant_total", description: "Montant total", type: "montant" as const, obligatoire: true },
+      { nom: "prescripteur", description: "Prescripteur", type: "texte" as const, obligatoire: true }
+    ],
+    statut: "actif" as const,
+    dateCreation: new Date().toISOString(),
+    dateModification: new Date().toISOString(),
+    version: "1.0",
+    format: "pdf" as const
+  },
+  {
+    id: 2,
+    nom: "Prolongation de réservation",
+    type: "prolongation_reservation" as const,
+    description: "Document de prolongation de réservation",
+    contenu: `PROLONGATION DE RÉSERVATION
+
+EN-TÊTE EXPÉDITEUR:
+Voyages Services Plus
+Tour Liberty 17 place des Reflets
+92400 Courbevoie
+reservation@vesta-operateursolidaire.fr
+
+INFORMATIONS DESTINATAIRE:
+Nom: {{nom_usager}}
+Établissement: {{nom_hotel}}
+
+DÉTAILS DE LA PROLONGATION:
+Numéro de dossier: {{numero_dossier}}
+Date d'arrivée initiale: {{date_arrivee}}
+Nouvelle date de départ: {{date_depart}}
+Nombre de nuits: {{nombre_nuits}}
+Prescripteur: {{prescripteur}}
+Statut: {{statut}}
+
+MOTIF DE LA PROLONGATION:
+Extension de la période d'hébergement d'urgence
+
+Date de génération: {{date_generation}}`,
+    variables: [
+      { nom: "nom_usager", description: "Nom de l'usager", type: "texte" as const, obligatoire: true },
+      { nom: "nom_hotel", description: "Nom de l'hôtel", type: "texte" as const, obligatoire: true },
+      { nom: "date_arrivee", description: "Date d'arrivée", type: "date" as const, obligatoire: true },
+      { nom: "date_depart", description: "Nouvelle date de départ", type: "date" as const, obligatoire: true },
+      { nom: "nombre_nuits", description: "Nombre de nuits", type: "nombre" as const, obligatoire: true },
+      { nom: "prescripteur", description: "Prescripteur", type: "texte" as const, obligatoire: true }
+    ],
+    statut: "actif" as const,
+    dateCreation: new Date().toISOString(),
+    dateModification: new Date().toISOString(),
+    version: "1.0",
+    format: "pdf" as const
+  },
+  {
+    id: 3,
+    nom: "Fin de prise en charge",
+    type: "fin_prise_charge" as const,
+    description: "Document de fin de prise en charge",
+    contenu: `FIN DE PRISE EN CHARGE
+
+EN-TÊTE EXPÉDITEUR:
+Voyages Services Plus
+Tour Liberty 17 place des Reflets
+92400 Courbevoie
+reservation@vesta-operateursolidaire.fr
+
+INFORMATIONS DESTINATAIRE:
+Nom: {{nom_usager}}
+Établissement: {{nom_hotel}}
+
+DÉTAILS DE LA FIN DE PRISE EN CHARGE:
+Numéro de dossier: {{numero_dossier}}
+Date d'arrivée: {{date_arrivee}}
+Date de fin: {{date_depart}}
+Nombre de nuits: {{nombre_nuits}}
+Prescripteur: {{prescripteur}}
+Statut: {{statut}}
+
+MOTIF DE LA FIN DE PRISE EN CHARGE:
+Fin de la période d'hébergement d'urgence
+
+Date de génération: {{date_generation}}`,
+    variables: [
+      { nom: "nom_usager", description: "Nom de l'usager", type: "texte" as const, obligatoire: true },
+      { nom: "nom_hotel", description: "Nom de l'hôtel", type: "texte" as const, obligatoire: true },
+      { nom: "date_arrivee", description: "Date d'arrivée", type: "date" as const, obligatoire: true },
+      { nom: "date_depart", description: "Date de fin", type: "date" as const, obligatoire: true },
+      { nom: "nombre_nuits", description: "Nombre de nuits", type: "nombre" as const, obligatoire: true },
+      { nom: "prescripteur", description: "Prescripteur", type: "texte" as const, obligatoire: true }
+    ],
+    statut: "actif" as const,
+    dateCreation: new Date().toISOString(),
+    dateModification: new Date().toISOString(),
+    version: "1.0",
+    format: "pdf" as const
+  }
+]; 

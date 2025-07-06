@@ -23,6 +23,7 @@ import {
   generateUsers,
   generateDocumentTemplates
 } from '../utils/dataGenerators';
+import { documentTemplates } from '../utils/syntheticData';
 import { Hotel, Reservation, OperateurSocial, ConventionPrix, ProcessusReservation, Message, Conversation, DashboardStats, User, DocumentTemplate } from '../types';
 import { useNotifications } from '../hooks/useNotifications';
 
@@ -178,7 +179,7 @@ export default function Home() {
       setConversations(conversationsData);
       setMessages(messagesData);
       setUsers(usersData);
-      setTemplates(generateDocumentTemplates());
+      setTemplates(documentTemplates);
       setIsLoading(false);
     } catch (error) {
       console.error('Erreur lors de la génération des données:', error);

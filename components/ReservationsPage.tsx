@@ -88,9 +88,11 @@ export default function ReservationsPage({
             reservations={reservations}
             processus={processus}
             hotels={hotels}
+            templates={templates}
             onReservationSelect={handleReservationSelect}
             onProlongReservation={handleProlongReservation}
             onEndCare={handleEndCare}
+            onUpdateReservation={handleUpdateReservation}
           />
         );
       default:
@@ -155,7 +157,13 @@ export default function ReservationsPage({
   const handleUpdateReservation = (updatedReservation: Reservation) => {
     console.log('Réservation mise à jour:', updatedReservation);
     // Ici vous pouvez ajouter la logique pour mettre à jour la réservation
+    // Pour l'instant, on simule la mise à jour en fermant le détail
     setSelectedReservationForDetail(null);
+    
+    // Si la réservation mise à jour est celle actuellement sélectionnée, on la met à jour
+    if (selectedReservationForDetail && selectedReservationForDetail.id === updatedReservation.id) {
+      setSelectedReservationForDetail(updatedReservation);
+    }
   };
 
   const handleDeleteReservation = (reservation: Reservation) => {

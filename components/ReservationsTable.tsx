@@ -28,18 +28,21 @@ import {
   TrendingDown,
   Users
 } from 'lucide-react';
-import { Reservation, ProcessusReservation, Hotel } from '../types';
+import { Reservation, ProcessusReservation, Hotel, DocumentTemplate } from '../types';
+import { PDFGenerator } from '../utils/pdfGenerator';
 
 interface ReservationsTableProps {
   reservations: Reservation[];
   processus: ProcessusReservation[];
   hotels?: Hotel[];
+  templates: DocumentTemplate[];
   onReservationSelect: (reservation: Reservation) => void;
   onProlongReservation?: (reservation: Reservation) => void;
   onEndCare?: (reservation: Reservation) => void;
+  onUpdateReservation?: (reservation: Reservation) => void;
 }
 
-export default function ReservationsTable({ reservations, processus, hotels = [], onReservationSelect, onProlongReservation, onEndCare }: ReservationsTableProps) {
+export default function ReservationsTable({ reservations, processus, hotels = [], templates, onReservationSelect, onProlongReservation, onEndCare, onUpdateReservation }: ReservationsTableProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
@@ -162,6 +165,169 @@ export default function ReservationsTable({ reservations, processus, hotels = []
 
   const handleCloseProcessus = () => {
     setSelectedProcessus(null);
+  };
+
+  // Fonctions de gestion des réservations
+  const handleConfirmReservation = async (reservation: Reservation) => {
+    try {
+      console.log('Confirmation de la réservation:', reservation);
+      
+      // Trouver le template de confirmation
+      const confirmationTemplate = templates.find(t => t.type === 'bon_reservation');
+      if (!confirmationTemplate) {
+        alert('Template de confirmation non trouvé');
+        return;
+      }
+
+      // Préparer les variables pour le PDF
+      const variables = {
+        nom_usager: reservation.usager,
+        nom_hotel: reservation.hotel,
+        date_arrivee: new Date(reservation.dateArrivee).toLocaleDateString('fr-FR'),
+        date_depart: new Date(reservation.dateDepart).toLocaleDateString('fr-FR'),
+        nombre_nuits: reservation.duree.toString(),
+        nombre_personnes: '1',
+        montant_total: reservation.prix.toString(),
+        prescripteur: reservation.prescripteur,
+        statut: 'CONFIRMEE',
+        numero_dossier: reservation.id.toString(),
+        telephone: '',
+        email: '',
+        adresse: '',
+        ville: '',
+        code_postal: '',
+        handicap: '',
+        accompagnement: 'Non',
+        nombre_accompagnants: '0',
+        notes: '',
+        date_generation: new Date().toLocaleDateString('fr-FR')
+      };
+
+      // Générer et télécharger le PDF de confirmation
+      await PDFGenerator.downloadPDF({
+        template: confirmationTemplate,
+        variables,
+        filename: `confirmation_reservation_${reservation.id}_${reservation.usager}.pdf`
+      });
+
+      // Mettre à jour le statut de la réservation
+      const updatedReservation = { ...reservation, statut: 'CONFIRMEE' };
+      onUpdateReservation?.(updatedReservation);
+
+      console.log('Réservation confirmée avec succès');
+      alert('Réservation confirmée et bon de confirmation généré !');
+    } catch (error) {
+      console.error('Erreur lors de la confirmation:', error);
+      alert('Erreur lors de la confirmation. Veuillez réessayer.');
+    }
+  };
+
+  const handleProlongReservation = async (reservation: Reservation) => {
+    try {
+      console.log('Prolongation de la réservation:', reservation);
+      
+      // Trouver le template de prolongation
+      const prolongationTemplate = templates.find(t => t.type === 'prolongation_reservation');
+      if (!prolongationTemplate) {
+        alert('Template de prolongation non trouvé');
+        return;
+      }
+
+      // Demander la nouvelle date de départ
+      const newDepartureDate = prompt('Nouvelle date de départ (JJ/MM/AAAA):');
+      if (!newDepartureDate) return;
+
+      // Calculer la nouvelle durée
+      const newDeparture = new Date(newDepartureDate.split('/').reverse().join('-'));
+      const arrival = new Date(reservation.dateArrivee);
+      const newDuration = Math.ceil((newDeparture.getTime() - arrival.getTime()) / (1000 * 60 * 60 * 24));
+
+      if (newDuration <= 0) {
+        alert('La date de départ doit être postérieure à la date d\'arrivée');
+        return;
+      }
+
+      // Préparer les variables pour le PDF
+      const variables = {
+        nom_usager: reservation.usager,
+        nom_hotel: reservation.hotel,
+        date_arrivee: new Date(reservation.dateArrivee).toLocaleDateString('fr-FR'),
+        date_depart: newDeparture.toLocaleDateString('fr-FR'),
+        nombre_nuits: newDuration.toString(),
+        prescripteur: reservation.prescripteur,
+        statut: reservation.statut,
+        numero_dossier: reservation.id.toString(),
+        date_generation: new Date().toLocaleDateString('fr-FR')
+      };
+
+      // Générer et télécharger le PDF de prolongation
+      await PDFGenerator.downloadPDF({
+        template: prolongationTemplate,
+        variables,
+        filename: `prolongation_reservation_${reservation.id}_${reservation.usager}.pdf`
+      });
+
+      // Mettre à jour la réservation
+      const updatedReservation = { 
+        ...reservation, 
+        dateDepart: newDeparture.toISOString().split('T')[0],
+        duree: newDuration
+      };
+      onUpdateReservation?.(updatedReservation);
+
+      console.log('Prolongation effectuée avec succès');
+      alert('Réservation prolongée et document généré !');
+    } catch (error) {
+      console.error('Erreur lors de la prolongation:', error);
+      alert('Erreur lors de la prolongation. Veuillez réessayer.');
+    }
+  };
+
+  const handleEndCareReservation = async (reservation: Reservation) => {
+    try {
+      console.log('Fin de prise en charge pour la réservation:', reservation);
+      
+      // Trouver le template de fin de prise en charge
+      const endCareTemplate = templates.find(t => t.type === 'fin_prise_charge');
+      if (!endCareTemplate) {
+        alert('Template de fin de prise en charge non trouvé');
+        return;
+      }
+
+      // Demander la date de fin
+      const endDate = prompt('Date de fin de prise en charge (JJ/MM/AAAA):', new Date().toLocaleDateString('fr-FR'));
+      if (!endDate) return;
+
+      // Préparer les variables pour le PDF
+      const variables = {
+        nom_usager: reservation.usager,
+        nom_hotel: reservation.hotel,
+        date_arrivee: new Date(reservation.dateArrivee).toLocaleDateString('fr-FR'),
+        date_depart: new Date(endDate.split('/').reverse().join('-')).toLocaleDateString('fr-FR'),
+        nombre_nuits: reservation.duree.toString(),
+        prescripteur: reservation.prescripteur,
+        statut: 'TERMINEE',
+        numero_dossier: reservation.id.toString(),
+        date_generation: new Date().toLocaleDateString('fr-FR')
+      };
+
+      // Générer et télécharger le PDF de fin de prise en charge
+      await PDFGenerator.downloadPDF({
+        template: endCareTemplate,
+        variables,
+        filename: `fin_prise_charge_${reservation.id}_${reservation.usager}.pdf`
+      });
+
+      // Mettre à jour le statut de la réservation
+      const updatedReservation = { ...reservation, statut: 'TERMINEE' };
+      onUpdateReservation?.(updatedReservation);
+
+      console.log('Fin de prise en charge effectuée avec succès');
+      alert('Fin de prise en charge effectuée et document généré !');
+    } catch (error) {
+      console.error('Erreur lors de la fin de prise en charge:', error);
+      alert('Erreur lors de la fin de prise en charge. Veuillez réessayer.');
+    }
   };
 
   // Fonctions pour la disponibilité
@@ -495,7 +661,7 @@ export default function ReservationsTable({ reservations, processus, hotels = []
                         )}
                       </td>
                       <td className="py-4 px-4">
-                                                <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -504,35 +670,55 @@ export default function ReservationsTable({ reservations, processus, hotels = []
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
-                          {processusReservation && (
+                          
+                          {/* Bouton Confirmer - visible seulement si EN_ATTENTE */}
+                          {reservation.statut === 'EN_ATTENTE' && (
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleViewProcessus(processusReservation)}
+                              onClick={() => handleConfirmReservation(reservation)}
+                              className="text-green-600 hover:text-green-700 border-green-600"
+                              title="Confirmer la réservation"
                             >
-                              <FileText className="h-4 w-4" />
+                              <CheckCircle className="h-4 w-4" />
                             </Button>
                           )}
-                          {onProlongReservation && reservation.statut === 'CONFIRMEE' && (
+                          
+                          {/* Bouton Prolonger - visible seulement si CONFIRMEE */}
+                          {reservation.statut === 'CONFIRMEE' && (
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => onProlongReservation(reservation)}
-                              className="text-blue-600 hover:text-blue-700"
+                              onClick={() => handleProlongReservation(reservation)}
+                              className="text-blue-600 hover:text-blue-700 border-blue-600"
                               title="Prolonger la réservation"
                             >
                               <Plus className="h-4 w-4" />
                             </Button>
                           )}
-                          {onEndCare && reservation.statut === 'CONFIRMEE' && (
+                          
+                          {/* Bouton Fin de prise en charge - visible seulement si CONFIRMEE */}
+                          {reservation.statut === 'CONFIRMEE' && (
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => onEndCare(reservation)}
-                              className="text-red-600 hover:text-red-700"
+                              onClick={() => handleEndCareReservation(reservation)}
+                              className="text-red-600 hover:text-red-700 border-red-600"
                               title="Mettre fin à la prise en charge"
                             >
                               <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                          
+                          {/* Bouton Processus - visible si un processus existe */}
+                          {processusReservation && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleViewProcessus(processusReservation)}
+                              title="Voir le processus"
+                            >
+                              <FileText className="h-4 w-4" />
                             </Button>
                           )}
                         </div>
