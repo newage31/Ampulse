@@ -32,6 +32,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Reservation, Hotel, OperateurSocial, DocumentTemplate, ProcessusReservation } from '../types';
 import { ProlongationModal, EndCareModal } from './Modals';
+import { PDFGenerator } from '../utils/pdfGenerator';
 
 interface ReservationDetailPageProps {
   reservation: Reservation;
@@ -100,8 +101,132 @@ export default function ReservationDetailPage({
   };
 
   const handleEditReservation = () => {
-    setIsEditMode(true);
-    // Ici vous pouvez ouvrir un modal d'édition
+    console.log('Modification de la réservation:', reservation);
+    // Ici vous pouvez ouvrir un modal d'édition ou naviguer vers un formulaire
+    // Pour l'instant, on affiche un message dans la console
+    alert('Fonctionnalité de modification en cours de développement');
+  };
+
+  const handleDownloadReservation = async () => {
+    try {
+      console.log('Génération du bon de réservation pour:', reservation);
+      
+      // Trouver le template de réservation
+      const reservationTemplate = templates.find(t => t.type === 'bon_reservation');
+      if (!reservationTemplate) {
+        alert('Template de réservation non trouvé');
+        return;
+      }
+
+      // Préparer les variables pour le PDF
+      const variables = {
+        nom_usager: reservation.usager,
+        nom_hotel: reservation.hotel,
+        date_arrivee: new Date(reservation.dateArrivee).toLocaleDateString('fr-FR'),
+        date_depart: new Date(reservation.dateDepart).toLocaleDateString('fr-FR'),
+        nombre_nuits: reservation.duree.toString(),
+        nombre_personnes: '1', // Valeur par défaut
+        montant_total: reservation.prix.toString(),
+        prescripteur: reservation.prescripteur,
+        statut: reservation.statut,
+        numero_dossier: reservation.id.toString(),
+        telephone: '', // Non disponible dans le type Reservation
+        email: '', // Non disponible dans le type Reservation
+        adresse: '', // Non disponible dans le type Reservation
+        ville: '', // Non disponible dans le type Reservation
+        code_postal: '', // Non disponible dans le type Reservation
+        handicap: '', // Non disponible dans le type Reservation
+        accompagnement: 'Non', // Valeur par défaut
+        nombre_accompagnants: '0', // Valeur par défaut
+        notes: '', // Non disponible dans le type Reservation
+        date_generation: new Date().toLocaleDateString('fr-FR')
+      };
+
+      await PDFGenerator.downloadPDF({
+        template: reservationTemplate,
+        variables,
+        filename: `reservation_${reservation.id}_${reservation.usager}.pdf`
+      });
+
+      console.log('PDF généré avec succès');
+    } catch (error) {
+      console.error('Erreur lors de la génération du PDF:', error);
+      alert('Erreur lors de la génération du PDF. Veuillez réessayer.');
+    }
+  };
+
+  const handleDownloadProlongation = async () => {
+    try {
+      console.log('Génération du bon de prolongation pour:', reservation);
+      
+      // Trouver le template de prolongation
+      const prolongationTemplate = templates.find(t => t.type === 'prolongation_reservation');
+      if (!prolongationTemplate) {
+        alert('Template de prolongation non trouvé');
+        return;
+      }
+
+      // Préparer les variables pour le PDF
+      const variables = {
+        nom_usager: reservation.usager,
+        nom_hotel: reservation.hotel,
+        date_arrivee: new Date(reservation.dateArrivee).toLocaleDateString('fr-FR'),
+        date_depart: new Date(reservation.dateDepart).toLocaleDateString('fr-FR'),
+        nombre_nuits: reservation.duree.toString(),
+        prescripteur: reservation.prescripteur,
+        statut: reservation.statut,
+        numero_dossier: reservation.id.toString(),
+        date_generation: new Date().toLocaleDateString('fr-FR')
+      };
+
+      await PDFGenerator.downloadPDF({
+        template: prolongationTemplate,
+        variables,
+        filename: `prolongation_${reservation.id}_${reservation.usager}.pdf`
+      });
+
+      console.log('PDF de prolongation généré avec succès');
+    } catch (error) {
+      console.error('Erreur lors de la génération du PDF de prolongation:', error);
+      alert('Erreur lors de la génération du PDF. Veuillez réessayer.');
+    }
+  };
+
+  const handleDownloadEndCare = async () => {
+    try {
+      console.log('Génération du bon de fin de prise en charge pour:', reservation);
+      
+      // Trouver le template de fin de prise en charge
+      const endCareTemplate = templates.find(t => t.type === 'fin_prise_charge');
+      if (!endCareTemplate) {
+        alert('Template de fin de prise en charge non trouvé');
+        return;
+      }
+
+      // Préparer les variables pour le PDF
+      const variables = {
+        nom_usager: reservation.usager,
+        nom_hotel: reservation.hotel,
+        date_arrivee: new Date(reservation.dateArrivee).toLocaleDateString('fr-FR'),
+        date_depart: new Date(reservation.dateDepart).toLocaleDateString('fr-FR'),
+        nombre_nuits: reservation.duree.toString(),
+        prescripteur: reservation.prescripteur,
+        statut: reservation.statut,
+        numero_dossier: reservation.id.toString(),
+        date_generation: new Date().toLocaleDateString('fr-FR')
+      };
+
+      await PDFGenerator.downloadPDF({
+        template: endCareTemplate,
+        variables,
+        filename: `fin_prise_charge_${reservation.id}_${reservation.usager}.pdf`
+      });
+
+      console.log('PDF de fin de prise en charge généré avec succès');
+    } catch (error) {
+      console.error('Erreur lors de la génération du PDF de fin de prise en charge:', error);
+      alert('Erreur lors de la génération du PDF. Veuillez réessayer.');
+    }
   };
 
   const handleDeleteReservation = () => {
@@ -464,6 +589,7 @@ export default function ReservationDetailPage({
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button
+                  onClick={handleDownloadReservation}
                   variant="outline"
                   className="w-full"
                 >
@@ -474,6 +600,7 @@ export default function ReservationDetailPage({
                 {reservation.statut === 'CONFIRMEE' && (
                   <>
                     <Button
+                      onClick={handleDownloadProlongation}
                       variant="outline"
                       className="w-full"
                     >
@@ -481,6 +608,7 @@ export default function ReservationDetailPage({
                       Télécharger le bon de prolongation
                     </Button>
                     <Button
+                      onClick={handleDownloadEndCare}
                       variant="outline"
                       className="w-full"
                     >
