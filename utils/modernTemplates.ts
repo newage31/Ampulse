@@ -1,5 +1,318 @@
 export const getModernTemplate = (type: string): string => {
   switch (type) {
+    case 'facture':
+      return `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: #f97316;
+            color: white;
+            padding: 20px 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .sender-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #f97316;
+        }
+        .sender-info h3 {
+            margin: 0 0 15px 0;
+            color: #f97316;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .sender-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 14px;
+        }
+        .invoice-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .invoice-info, .client-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .invoice-info h3, .client-info h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #666;
+        }
+        .info-value {
+            color: #333;
+        }
+        .services-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .services-table th {
+            background: #f97316;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .services-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 14px;
+        }
+        .services-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        .totals-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .totals-section h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .total-row.final {
+            font-weight: 600;
+            font-size: 16px;
+            color: #f97316;
+            border-top: 2px solid #f97316;
+            padding-top: 8px;
+            margin-top: 8px;
+        }
+        .payment-info {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #28a745;
+        }
+        .payment-info h3 {
+            margin: 0 0 15px 0;
+            color: #28a745;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .legal-mentions {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+            font-size: 12px;
+            color: #856404;
+        }
+        .page-number {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>FACTURE</h1>
+        </div>
+        
+        <div class="content">
+            <!-- En-tête expéditeur -->
+            <div class="sender-info">
+                <h3>Expéditeur (NOUVELLE ADRESSE)</h3>
+                <div class="sender-details">
+                    <div><strong>Voyages Services Plus</strong></div>
+                    <div>Tour Liberty 17 place des Reflets</div>
+                    <div>92400 Courbevoie</div>
+                    <div>reservation@vesta-operateursolidaire.fr</div>
+                    <div>SIRET: [SIRET de l'entreprise]</div>
+                    <div>TVA Intracommunautaire: [Numéro TVA VSP]</div>
+                </div>
+            </div>
+
+            <!-- Informations facture et client -->
+            <div class="invoice-details">
+                <div class="invoice-info">
+                    <h3>Informations Facture</h3>
+                    <div class="info-row">
+                        <span class="info-label">N° Facture:</span>
+                        <span class="info-value">{{numero_facture}}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Date de facture:</span>
+                        <span class="info-value">{{date_facture}}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Date d'échéance:</span>
+                        <span class="info-value">{{date_echeance}}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Référence client:</span>
+                        <span class="info-value">{{reference_client}}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Période de facturation:</span>
+                        <span class="info-value">{{periode_facturation}}</span>
+                    </div>
+                </div>
+
+                <div class="client-info">
+                    <h3>Informations Destinataire</h3>
+                    <div class="info-row">
+                        <span class="info-label">Nom destinataire:</span>
+                        <span class="info-value">{{nom_destinataire}}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">N° de marché:</span>
+                        <span class="info-value">{{numero_marche}}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">TVA Intracommunautaire:</span>
+                        <span class="info-value">{{tva_destinataire}}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Service:</span>
+                        <span class="info-value">{{service_destinataire}}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Adresse:</span>
+                        <span class="info-value">{{adresse_destinataire}}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Email:</span>
+                        <span class="info-value">{{email_destinataire}}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tableau des prestations -->
+            <h3>Détail des Prestations</h3>
+            <table class="services-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Période</th>
+                        <th>Nombre de nuits</th>
+                        <th>Prix unitaire HT</th>
+                        <th>Total HT</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{description_prestation}}</td>
+                        <td>{{periode_prestation}}</td>
+                        <td>{{nombre_nuits_prestation}}</td>
+                        <td>{{prix_unitaire_prestation}} €</td>
+                        <td>{{total_ht_prestation}} €</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Totaux -->
+            <div class="totals-section">
+                <h3>Totaux</h3>
+                <div class="total-row">
+                    <span>Sous-total HT:</span>
+                    <span>{{sous_total_ht}} €</span>
+                </div>
+                <div class="total-row">
+                    <span>TVA (20%):</span>
+                    <span>{{tva}} €</span>
+                </div>
+                <div class="total-row final">
+                    <span>TOTAL TTC:</span>
+                    <span>{{total_ttc}} €</span>
+                </div>
+            </div>
+
+            <!-- Informations de paiement -->
+            <div class="payment-info">
+                <h3>Informations de Paiement</h3>
+                <div class="info-row">
+                    <span class="info-label">Mode de paiement:</span>
+                    <span class="info-value">{{mode_paiement}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">IBAN:</span>
+                    <span class="info-value">{{iban}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">BIC:</span>
+                    <span class="info-value">{{bic}}</span>
+                </div>
+            </div>
+
+            <!-- Mentions légales -->
+            <div class="legal-mentions">
+                <strong>Conditions de paiement:</strong> Paiement à 30 jours<br>
+                <strong>Pénalités de retard:</strong> En cas de retard de paiement, pénalités de 3 fois le taux légal<br>
+                <strong>Mentions obligatoires:</strong> TVA non applicable - art. 293B du CGI
+            </div>
+
+            <div class="page-number">
+                Page 1/1
+            </div>
+        </div>
+    </div>
+</body>
+</html>`;
+
     case 'bon_reservation':
       return `<!DOCTYPE html>
 <html>

@@ -123,12 +123,132 @@ export default function TestPDFGeneration() {
     },
     {
       id: 2,
-      nom: "Facture",
-      description: "Facture pour la réservation",
+      nom: "Facture VSP",
+      description: "Facture complète avec tous les champs requis",
       type: "facture",
       version: "1.0",
-      contenu: "Facture pour {{usager}} - Montant: {{prix_total}}€",
-      variables: testVariables2,
+      contenu: "Facture pour {{nom_destinataire}} - Montant: {{total_ttc}}€",
+      variables: [
+        {
+          nom: "numero_facture",
+          description: "Numéro de facture",
+          type: "texte",
+          obligatoire: true,
+          exemple: "FAC-2025-001234"
+        },
+        {
+          nom: "date_facture",
+          description: "Date de facture",
+          type: "date",
+          obligatoire: true,
+          exemple: "15 Mars 2025"
+        },
+        {
+          nom: "date_echeance",
+          description: "Date d'échéance",
+          type: "date",
+          obligatoire: true,
+          exemple: "14 Avril 2025"
+        },
+        {
+          nom: "reference_client",
+          description: "Référence client",
+          type: "texte",
+          obligatoire: true,
+          exemple: "2024-SSP-DELTA"
+        },
+        {
+          nom: "periode_facturation",
+          description: "Période de facturation",
+          type: "texte",
+          obligatoire: true,
+          exemple: "Février 2025"
+        },
+        {
+          nom: "nom_destinataire",
+          description: "Nom du destinataire",
+          type: "texte",
+          obligatoire: true,
+          exemple: "SAMUSOCIAL DE PARIS"
+        },
+        {
+          nom: "numero_marche",
+          description: "Numéro de marché",
+          type: "texte",
+          obligatoire: true,
+          exemple: "2024-SSP-DELTA"
+        },
+        {
+          nom: "tva_destinataire",
+          description: "TVA Intracommunautaire du destinataire",
+          type: "texte",
+          obligatoire: true,
+          exemple: "FR92187509013"
+        },
+        {
+          nom: "service_destinataire",
+          description: "Service du destinataire",
+          type: "texte",
+          obligatoire: true,
+          exemple: "Service Comptabilité Hôtel"
+        },
+        {
+          nom: "adresse_destinataire",
+          description: "Adresse du destinataire",
+          type: "texte",
+          obligatoire: true,
+          exemple: "15 rue Jean Baptiste Berlier 75013 Paris"
+        },
+        {
+          nom: "email_destinataire",
+          description: "Email du destinataire",
+          type: "email",
+          obligatoire: true,
+          exemple: "coordination-reservations.phrh@samusocial-75.fr"
+        },
+        {
+          nom: "sous_total_ht",
+          description: "Sous-total HT",
+          type: "montant",
+          obligatoire: true,
+          exemple: "1,237.50"
+        },
+        {
+          nom: "tva",
+          description: "Montant TVA",
+          type: "montant",
+          obligatoire: true,
+          exemple: "247.50"
+        },
+        {
+          nom: "total_ttc",
+          description: "Total TTC",
+          type: "montant",
+          obligatoire: true,
+          exemple: "1,485.00"
+        },
+        {
+          nom: "mode_paiement",
+          description: "Mode de paiement",
+          type: "texte",
+          obligatoire: true,
+          exemple: "Virement bancaire"
+        },
+        {
+          nom: "iban",
+          description: "IBAN",
+          type: "texte",
+          obligatoire: true,
+          exemple: "FR76 XXXX XXXX XXXX XXXX XXXX XXX"
+        },
+        {
+          nom: "bic",
+          description: "BIC",
+          type: "texte",
+          obligatoire: true,
+          exemple: "XXXXXXXX"
+        }
+      ],
       statut: "actif",
       dateCreation: "2024-01-01",
       dateModification: "2024-01-01",

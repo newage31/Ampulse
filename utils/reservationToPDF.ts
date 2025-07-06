@@ -294,30 +294,64 @@ export class ReservationToPDFMapper {
     reservationData: ReservationData,
     baseVariables: PDFVariableMapping
   ): PDFVariableMapping {
-    const { reservation, hotel } = reservationData;
+    const { reservation, hotel, operateur } = reservationData;
     const variables = { ...baseVariables };
 
     // Variables spécifiques aux factures
-    variables['numero_facture'] = `FAC-${reservation.id.toString().padStart(6, '0')}`;
+    const currentDate = new Date();
+    const dueDate = new Date(currentDate.getTime() + 30 * 24 * 60 * 60 * 1000);
     
-    // Données synthétiques de l'usager
+    variables['numero_facture'] = `FAC-${currentDate.getFullYear()}-${reservation.id.toString().padStart(6, '0')}`;
+    variables['date_facture'] = currentDate.toLocaleDateString('fr-FR', { 
+      day: 'numeric', 
+      month: 'long', 
+      year: 'numeric' 
+    });
+    variables['date_echeance'] = dueDate.toLocaleDateString('fr-FR', { 
+      day: 'numeric', 
+      month: 'long', 
+      year: 'numeric' 
+    });
+    variables['reference_client'] = `${currentDate.getFullYear()}-SSP-DELTA`;
+    variables['periode_facturation'] = currentDate.toLocaleDateString('fr-FR', { 
+      month: 'long', 
+      year: 'numeric' 
+    });
+
+    // Informations destinataire (client facturé)
+    variables['nom_destinataire'] = 'SAMUSOCIAL DE PARIS';
+    variables['numero_marche'] = '2024-SSP-DELTA';
+    variables['tva_destinataire'] = 'FR92187509013';
+    variables['service_destinataire'] = 'Service Comptabilité Hôtel';
+    variables['adresse_destinataire'] = '15 rue Jean Baptiste Berlier 75013 Paris';
+    variables['email_destinataire'] = 'coordination-reservations.phrh@samusocial-75.fr';
+
+    // Calculs financiers
+    const sousTotalHT = reservation.prix * reservation.duree;
+    const tva = sousTotalHT * 0.20; // 20% de TVA
+    const totalTTC = sousTotalHT + tva;
+    
+    variables['sous_total_ht'] = sousTotalHT.toFixed(2);
+    variables['tva'] = tva.toFixed(2);
+    variables['total_ttc'] = totalTTC.toFixed(2);
+
+    // Informations de paiement
+    variables['mode_paiement'] = 'Virement bancaire';
+    variables['iban'] = 'FR76 XXXX XXXX XXXX XXXX XXXX XXX';
+    variables['bic'] = 'XXXXXXXX';
+
+    // Données synthétiques de l'usager pour les prestations
     const usagerParts = reservation.usager.split(' ');
     const nomUsager = usagerParts[0] || '';
     const prenomUsager = usagerParts[1] || '';
     const syntheticUser = getSyntheticUserData(nomUsager, prenomUsager);
     
-    variables['nom_client'] = nomUsager;
-    variables['prenom_client'] = prenomUsager;
-    variables['adresse_client'] = syntheticUser?.adresse || 'Adresse à compléter';
-    variables['telephone_client'] = syntheticUser?.telephone || 'Téléphone à compléter';
-    variables['email_client'] = syntheticUser?.email || '';
-    variables['numero_secu_client'] = syntheticUser?.numeroSecu || '';
-    
-    variables['total_ht'] = (reservation.prix * reservation.duree).toFixed(2);
-    variables['tva'] = ((reservation.prix * reservation.duree) * 0.1).toFixed(2);
-    variables['total_ttc'] = ((reservation.prix * reservation.duree) * 1.1).toFixed(2);
-    variables['mode_paiement'] = 'Virement bancaire';
-    variables['date_echeance'] = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR');
+    // Variables pour les prestations (pour le tableau)
+    variables['description_prestation'] = `Hébergement T1DB - Famille ${nomUsager.toUpperCase()}`;
+    variables['periode_prestation'] = `${this.formatDate(reservation.dateArrivee)} au ${this.formatDate(reservation.dateDepart)}`;
+    variables['nombre_nuits_prestation'] = reservation.duree.toString();
+    variables['prix_unitaire_prestation'] = reservation.prix.toFixed(2);
+    variables['total_ht_prestation'] = sousTotalHT.toFixed(2);
 
     return variables;
   }
