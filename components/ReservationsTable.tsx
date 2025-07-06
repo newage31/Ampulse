@@ -36,6 +36,10 @@ interface ReservationsTableProps {
 export default function ReservationsTable({ reservations, processus, onReservationSelect, onProlongReservation, onEndCare }: ReservationsTableProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [hotelFilter, setHotelFilter] = useState('all');
+  const [dateFilter, setDateFilter] = useState('all');
+  const [showFilters, setShowFilters] = useState(false);
   const [selectedProcessus, setSelectedProcessus] = useState<ProcessusReservation | null>(null);
 
   const getStatusColor = (statut: string) => {
@@ -86,6 +90,18 @@ export default function ReservationsTable({ reservations, processus, onReservati
     }
   };
 
+  // Extraire les types de prescripteurs uniques
+  const prescripteurTypes = Array.from(new Set(reservations.map(r => {
+    const prescripteur = r.prescripteur.toLowerCase();
+    if (prescripteur.includes('entreprise') || prescripteur.includes('sarl') || prescripteur.includes('sas')) return 'entreprise';
+    if (prescripteur.includes('association') || prescripteur.includes('asso')) return 'association';
+    if (prescripteur.includes('samusocial') || prescripteur.includes('social')) return 'institution';
+    return 'particulier';
+  })));
+
+  // Extraire les hôtels uniques
+  const hotels = Array.from(new Set(reservations.map(r => r.hotel)));
+
   const filteredReservations = reservations.filter(reservation => {
     const matchesSearch = 
       reservation.usager.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -94,7 +110,37 @@ export default function ReservationsTable({ reservations, processus, onReservati
     
     const matchesStatus = statusFilter === 'all' || reservation.statut === statusFilter;
     
-    return matchesSearch && matchesStatus;
+    const matchesType = typeFilter === 'all' || (() => {
+      const prescripteur = reservation.prescripteur.toLowerCase();
+      if (typeFilter === 'entreprise') return prescripteur.includes('entreprise') || prescripteur.includes('sarl') || prescripteur.includes('sas');
+      if (typeFilter === 'association') return prescripteur.includes('association') || prescripteur.includes('asso');
+      if (typeFilter === 'institution') return prescripteur.includes('samusocial') || prescripteur.includes('social');
+      if (typeFilter === 'particulier') return !prescripteur.includes('entreprise') && !prescripteur.includes('association') && !prescripteur.includes('samusocial');
+      return true;
+    })();
+    
+    const matchesHotel = hotelFilter === 'all' || reservation.hotel === hotelFilter;
+    
+    const matchesDate = dateFilter === 'all' || (() => {
+      const today = new Date();
+      const arrivalDate = new Date(reservation.dateArrivee);
+      const departureDate = new Date(reservation.dateDepart);
+      
+      if (dateFilter === 'today') return arrivalDate.toDateString() === today.toDateString();
+      if (dateFilter === 'week') {
+        const weekFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+        return arrivalDate >= today && arrivalDate <= weekFromNow;
+      }
+      if (dateFilter === 'month') {
+        const monthFromNow = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+        return arrivalDate >= today && arrivalDate <= monthFromNow;
+      }
+      if (dateFilter === 'past') return departureDate < today;
+      if (dateFilter === 'current') return arrivalDate <= today && departureDate >= today;
+      return true;
+    })();
+    
+    return matchesSearch && matchesStatus && matchesType && matchesHotel && matchesDate;
   });
 
   const getProcessusForReservation = (reservationId: number) => {
@@ -123,29 +169,140 @@ export default function ReservationsTable({ reservations, processus, onReservati
         </CardHeader>
         <CardContent>
           {/* Filtres et recherche */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Rechercher par usager, établissement ou prescripteur..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+          <div className="space-y-4 mb-6">
+            {/* Barre de recherche principale */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Rechercher par nom de personne, établissement ou prescripteur..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex items-center gap-2"
+                >
+                  <Filter className="h-4 w-4" />
+                  Filtres avancés
+                  {showFilters && <Badge variant="secondary" className="ml-1">3</Badge>}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSearchTerm('');
+                    setStatusFilter('all');
+                    setTypeFilter('all');
+                    setHotelFilter('all');
+                    setDateFilter('all');
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <X className="h-4 w-4" />
+                  Réinitialiser
+                </Button>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">Tous les statuts</option>
-                <option value="CONFIRMEE">Confirmée</option>
-                <option value="EN_COURS">En cours</option>
-                <option value="TERMINEE">Terminée</option>
-                <option value="ANNULEE">Annulée</option>
-              </select>
-            </div>
+
+            {/* Filtres avancés */}
+            {showFilters && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg border">
+                {/* Filtre par statut */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Statut</label>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="all">Tous les statuts</option>
+                    <option value="CONFIRMEE">Confirmée</option>
+                    <option value="EN_COURS">En cours</option>
+                    <option value="TERMINEE">Terminée</option>
+                    <option value="ANNULEE">Annulée</option>
+                  </select>
+                </div>
+
+                {/* Filtre par type de prescripteur */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Type de prescripteur</label>
+                  <select
+                    value={typeFilter}
+                    onChange={(e) => setTypeFilter(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="all">Tous les types</option>
+                    <option value="entreprise">Entreprise</option>
+                    <option value="association">Association</option>
+                    <option value="institution">Institution</option>
+                    <option value="particulier">Particulier</option>
+                  </select>
+                </div>
+
+                {/* Filtre par hôtel */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Établissement</label>
+                  <select
+                    value={hotelFilter}
+                    onChange={(e) => setHotelFilter(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="all">Tous les établissements</option>
+                    {hotels.map((hotel) => (
+                      <option key={hotel} value={hotel}>{hotel}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Filtre par date */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Période</label>
+                  <select
+                    value={dateFilter}
+                    onChange={(e) => setDateFilter(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="all">Toutes les périodes</option>
+                    <option value="today">Aujourd'hui</option>
+                    <option value="week">Cette semaine</option>
+                    <option value="month">Ce mois</option>
+                    <option value="current">En cours</option>
+                    <option value="past">Passées</option>
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* Résumé des filtres actifs */}
+            {(statusFilter !== 'all' || typeFilter !== 'all' || hotelFilter !== 'all' || dateFilter !== 'all') && (
+              <div className="flex flex-wrap gap-2">
+                <span className="text-sm text-gray-600">Filtres actifs :</span>
+                {statusFilter !== 'all' && (
+                  <Badge variant="outline" className="text-xs">
+                    Statut: {statusFilter}
+                  </Badge>
+                )}
+                {typeFilter !== 'all' && (
+                  <Badge variant="outline" className="text-xs">
+                    Type: {typeFilter}
+                  </Badge>
+                )}
+                {hotelFilter !== 'all' && (
+                  <Badge variant="outline" className="text-xs">
+                    Établissement: {hotelFilter}
+                  </Badge>
+                )}
+                {dateFilter !== 'all' && (
+                  <Badge variant="outline" className="text-xs">
+                    Période: {dateFilter}
+                  </Badge>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Tableau des réservations */}

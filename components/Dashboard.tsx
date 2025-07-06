@@ -101,10 +101,48 @@ export default function Dashboard({ stats, onActionClick, features, selectedHote
   ];
 
   const quickActions = [
-    { label: "Ajouter une chambre", action: "add-room", icon: Plus },
-    { label: "Nouvelle réservation", action: "new-reservation", icon: Calendar },
-    { label: "Modifier établissement", action: "edit-hotel", icon: Edit },
-    { label: "Générer rapport", action: "generate-report", icon: FileText }
+    { 
+      label: "Nouvelle réservation", 
+      action: "new-reservation", 
+      icon: Plus,
+      description: "Créer une nouvelle réservation",
+      color: "bg-blue-50 hover:bg-blue-100 border-blue-200"
+    },
+    { 
+      label: "Ajouter un client", 
+      action: "add-client", 
+      icon: Users,
+      description: "Enregistrer un nouveau client",
+      color: "bg-green-50 hover:bg-green-100 border-green-200"
+    },
+    { 
+      label: "Générer facture", 
+      action: "generate-invoice", 
+      icon: FileText,
+      description: "Créer une facture PDF",
+      color: "bg-purple-50 hover:bg-purple-100 border-purple-200"
+    },
+    { 
+      label: "Voir calendrier", 
+      action: "view-calendar", 
+      icon: Calendar,
+      description: "Consulter le planning",
+      color: "bg-orange-50 hover:bg-orange-100 border-orange-200"
+    },
+    { 
+      label: "Ajouter chambre", 
+      action: "add-room", 
+      icon: Building,
+      description: "Ajouter une nouvelle chambre",
+      color: "bg-indigo-50 hover:bg-indigo-100 border-indigo-200"
+    },
+    { 
+      label: "Rapport rapide", 
+      action: "quick-report", 
+      icon: BarChart3,
+      description: "Générer un rapport",
+      color: "bg-pink-50 hover:bg-pink-100 border-pink-200"
+    }
   ];
 
   // Données pour les graphiques
@@ -407,21 +445,25 @@ export default function Dashboard({ stats, onActionClick, features, selectedHote
       {/* Actions rapides */}
       <Card>
         <CardHeader>
-          <CardTitle>Actions rapides</CardTitle>
+          <CardTitle className="flex items-center">
+            <Activity className="h-5 w-5 mr-2 text-blue-600" />
+            Actions rapides
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {quickActions.map((action, index) => {
               const Icon = action.icon;
               return (
                 <Button
                   key={index}
                   variant="outline"
-                  className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-blue-50 hover:border-blue-200"
+                  className={`h-24 flex flex-col items-center justify-center space-y-2 ${action.color} transition-all duration-200 hover:scale-105`}
                   onClick={() => onActionClick(action.action)}
                 >
-                  <Icon className="h-6 w-6 text-blue-600" />
-                  <span className="text-sm text-center">{action.label}</span>
+                  <Icon className="h-6 w-6" />
+                  <span className="text-xs text-center font-medium">{action.label}</span>
+                  <span className="text-xs text-gray-500 text-center hidden md:block">{action.description}</span>
                 </Button>
               );
             })}
