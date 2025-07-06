@@ -197,7 +197,7 @@ export default function RoomCategories() {
       tauxOccupation: 60,
       revenusMensuel: 4950,
       couleur: 'teal',
-      icone: 'wheelchair'
+      icone: 'accessibility'
     }
   ]);
 

@@ -9,21 +9,15 @@ import {
   Users, 
   Calendar, 
   TrendingUp, 
-  Plus, 
-  Edit, 
-  Eye, 
   UserCheck,
   BarChart3,
   PieChart,
-  Activity,
   Target,
   Award,
   Clock,
   Star,
   MapPin,
-  Building,
-  Euro,
-  FileText
+  Euro
 } from 'lucide-react';
 import { DashboardStats } from '../types';
 
@@ -100,50 +94,7 @@ export default function Dashboard({ stats, onActionClick, features, selectedHote
     }
   ];
 
-  const quickActions = [
-    { 
-      label: "Nouvelle réservation", 
-      action: "new-reservation", 
-      icon: Plus,
-      description: "Créer une nouvelle réservation",
-      color: "bg-blue-50 hover:bg-blue-100 border-blue-200"
-    },
-    { 
-      label: "Ajouter un client", 
-      action: "add-client", 
-      icon: Users,
-      description: "Enregistrer un nouveau client",
-      color: "bg-green-50 hover:bg-green-100 border-green-200"
-    },
-    { 
-      label: "Générer facture", 
-      action: "generate-invoice", 
-      icon: FileText,
-      description: "Créer une facture PDF",
-      color: "bg-purple-50 hover:bg-purple-100 border-purple-200"
-    },
-    { 
-      label: "Voir calendrier", 
-      action: "view-calendar", 
-      icon: Calendar,
-      description: "Consulter le planning",
-      color: "bg-orange-50 hover:bg-orange-100 border-orange-200"
-    },
-    { 
-      label: "Ajouter chambre", 
-      action: "add-room", 
-      icon: Building,
-      description: "Ajouter une nouvelle chambre",
-      color: "bg-indigo-50 hover:bg-indigo-100 border-indigo-200"
-    },
-    { 
-      label: "Rapport rapide", 
-      action: "quick-report", 
-      icon: BarChart3,
-      description: "Générer un rapport",
-      color: "bg-pink-50 hover:bg-pink-100 border-pink-200"
-    }
-  ];
+
 
   // Données pour les graphiques
   const chartData = [
@@ -383,7 +334,7 @@ export default function Dashboard({ stats, onActionClick, features, selectedHote
                     className="w-full text-blue-700 border-blue-300 hover:bg-blue-100"
                     onClick={() => onActionClick('edit-hotel')}
                   >
-                    <Edit className="h-4 w-4 mr-2" />
+                    <UserCheck className="h-4 w-4 mr-2" />
                     Modifier
                   </Button>
                   <Button 
@@ -392,7 +343,7 @@ export default function Dashboard({ stats, onActionClick, features, selectedHote
                     className="w-full text-blue-700 border-blue-300 hover:bg-blue-100"
                     onClick={() => onActionClick('add-room')}
                   >
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Building2 className="h-4 w-4 mr-2" />
                     Ajouter chambre
                   </Button>
                 </div>
@@ -442,34 +393,7 @@ export default function Dashboard({ stats, onActionClick, features, selectedHote
         })}
       </div>
 
-      {/* Actions rapides */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Activity className="h-5 w-5 mr-2 text-blue-600" />
-            Actions rapides
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {quickActions.map((action, index) => {
-              const Icon = action.icon;
-              return (
-                <Button
-                  key={index}
-                  variant="outline"
-                  className={`h-24 flex flex-col items-center justify-center space-y-2 ${action.color} transition-all duration-200 hover:scale-105`}
-                  onClick={() => onActionClick(action.action)}
-                >
-                  <Icon className="h-6 w-6" />
-                  <span className="text-xs text-center font-medium">{action.label}</span>
-                  <span className="text-xs text-gray-500 text-center hidden md:block">{action.description}</span>
-                </Button>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+
 
       {/* Graphiques et Statistiques */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -648,7 +572,7 @@ export default function Dashboard({ stats, onActionClick, features, selectedHote
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <Activity className="h-5 w-5 mr-2 text-green-600" />
+                              <BarChart3 className="h-5 w-5 mr-2 text-green-600" />
               Activité récente
             </CardTitle>
           </CardHeader>

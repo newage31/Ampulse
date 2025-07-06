@@ -161,7 +161,7 @@ export default function RoomCharacteristics() {
       nom: 'Accès PMR',
       description: 'Aménagements pour personnes à mobilité réduite',
       type: 'accessibilite',
-      icone: 'wheelchair',
+      icone: 'accessibility',
       chambresEquipees: 5,
       totalChambres: 93,
       statut: 'active',

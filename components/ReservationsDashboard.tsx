@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
+import { Button } from './ui/button';
 import { 
   Calendar, 
   Users, 
@@ -8,15 +9,55 @@ import {
   TrendingDown,
   CheckCircle,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  Plus,
+  FileText,
+  Search,
+  Filter,
+  BarChart3,
+  Eye,
+  Edit,
+  Trash2,
+  UserPlus,
+  Building,
+  CalendarDays,
+  CheckSquare,
+  XSquare,
+  RefreshCw
 } from 'lucide-react';
-import { Reservation } from '../types';
+import { Reservation, Hotel, OperateurSocial } from '../types';
 
 interface ReservationsDashboardProps {
   reservations: Reservation[];
+  hotels?: Hotel[];
+  operateurs?: OperateurSocial[];
+  onActionClick?: (action: string, data?: any) => void;
+  onReservationSelect?: (reservation: Reservation) => void;
+  onNewReservation?: () => void;
+  onEditReservation?: (reservation: Reservation) => void;
+  onDeleteReservation?: (reservation: Reservation) => void;
+  onConfirmReservation?: (reservation: Reservation) => void;
+  onCancelReservation?: (reservation: Reservation) => void;
+  onViewDetails?: (reservation: Reservation) => void;
+  onGenerateReport?: () => void;
+  onCheckAvailability?: () => void;
 }
 
-export default function ReservationsDashboard({ reservations }: ReservationsDashboardProps) {
+export default function ReservationsDashboard({ 
+  reservations, 
+  hotels = [], 
+  operateurs = [],
+  onActionClick,
+  onReservationSelect,
+  onNewReservation,
+  onEditReservation,
+  onDeleteReservation,
+  onConfirmReservation,
+  onCancelReservation,
+  onViewDetails,
+  onGenerateReport,
+  onCheckAvailability
+}: ReservationsDashboardProps) {
   // Calcul des statistiques
   const totalReservations = reservations.length;
   const reservationsEnCours = reservations.filter(r => r.statut === 'EN_COURS').length;
@@ -138,6 +179,79 @@ export default function ReservationsDashboard({ reservations }: ReservationsDash
         </Card>
       </div>
 
+      {/* Actions rapides */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <BarChart3 className="h-5 w-5 mr-2 text-blue-600" />
+            Actions rapides
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <Button
+              variant="outline"
+              className="h-24 flex flex-col items-center justify-center space-y-2 bg-blue-50 hover:bg-blue-100 border-blue-200 transition-all duration-200 hover:scale-105"
+              onClick={() => onNewReservation?.() || onActionClick?.('new-reservation')}
+            >
+              <Plus className="h-6 w-6 text-blue-600" />
+              <span className="text-xs text-center font-medium">Nouvelle réservation</span>
+              <span className="text-xs text-gray-500 text-center hidden md:block">Créer une nouvelle réservation</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="h-24 flex flex-col items-center justify-center space-y-2 bg-green-50 hover:bg-green-100 border-green-200 transition-all duration-200 hover:scale-105"
+              onClick={() => onCheckAvailability?.() || onActionClick?.('check-availability')}
+            >
+              <Eye className="h-6 w-6 text-green-600" />
+              <span className="text-xs text-center font-medium">Vérifier disponibilité</span>
+              <span className="text-xs text-gray-500 text-center hidden md:block">Consulter les disponibilités</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="h-24 flex flex-col items-center justify-center space-y-2 bg-purple-50 hover:bg-purple-100 border-purple-200 transition-all duration-200 hover:scale-105"
+              onClick={() => onGenerateReport?.() || onActionClick?.('generate-report')}
+            >
+              <FileText className="h-6 w-6 text-purple-600" />
+              <span className="text-xs text-center font-medium">Générer rapport</span>
+              <span className="text-xs text-gray-500 text-center hidden md:block">Créer un rapport PDF</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="h-24 flex flex-col items-center justify-center space-y-2 bg-orange-50 hover:bg-orange-100 border-orange-200 transition-all duration-200 hover:scale-105"
+              onClick={() => onActionClick?.('view-calendar')}
+            >
+              <CalendarDays className="h-6 w-6 text-orange-600" />
+              <span className="text-xs text-center font-medium">Voir calendrier</span>
+              <span className="text-xs text-gray-500 text-center hidden md:block">Consulter le planning</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="h-24 flex flex-col items-center justify-center space-y-2 bg-indigo-50 hover:bg-indigo-100 border-indigo-200 transition-all duration-200 hover:scale-105"
+              onClick={() => onActionClick?.('add-client')}
+            >
+              <UserPlus className="h-6 w-6 text-indigo-600" />
+              <span className="text-xs text-center font-medium">Ajouter client</span>
+              <span className="text-xs text-gray-500 text-center hidden md:block">Enregistrer un nouveau client</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="h-24 flex flex-col items-center justify-center space-y-2 bg-pink-50 hover:bg-pink-100 border-pink-200 transition-all duration-200 hover:scale-105"
+              onClick={() => onActionClick?.('add-hotel')}
+            >
+              <Building className="h-6 w-6 text-pink-600" />
+              <span className="text-xs text-center font-medium">Ajouter hôtel</span>
+              <span className="text-xs text-gray-500 text-center hidden md:block">Ajouter un nouvel hôtel</span>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Graphique des réservations par mois */}
       <Card>
         <CardHeader>
@@ -207,9 +321,62 @@ export default function ReservationsDashboard({ reservations }: ReservationsDash
                       </p>
                     </div>
                   </div>
-                  <Badge className={getStatusColor(reservation.statut)}>
-                    {reservation.statut}
-                  </Badge>
+                  <div className="flex items-center space-x-2">
+                    <Badge className={getStatusColor(reservation.statut)}>
+                      {reservation.statut}
+                    </Badge>
+                    <div className="flex space-x-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0"
+                        onClick={() => onViewDetails?.(reservation) || onReservationSelect?.(reservation)}
+                        title="Voir détails"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0"
+                        onClick={() => onEditReservation?.(reservation)}
+                        title="Modifier"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      {reservation.statut === 'EN_COURS' && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
+                            onClick={() => onConfirmReservation?.(reservation)}
+                            title="Confirmer"
+                          >
+                            <CheckSquare className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                            onClick={() => onCancelReservation?.(reservation)}
+                            title="Annuler"
+                          >
+                            <XSquare className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                        onClick={() => onDeleteReservation?.(reservation)}
+                        title="Supprimer"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
