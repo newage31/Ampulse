@@ -292,7 +292,15 @@ export default function Home() {
           />
         );
       case 'chambres':
-        return <ChambresPage selectedHotel={selectedHotel ? hotels.find(h => h.id === selectedHotel) || null : null} />;
+        return (
+          <ChambresPage 
+            selectedHotel={selectedHotel ? hotels.find(h => h.id === selectedHotel) || null : null} 
+            onActionClick={(action) => {
+              console.log('Action chambre:', action);
+              addNotification('info', `Action chambre: ${action}`);
+            }}
+          />
+        );
       case 'gestion':
         return <GestionPage selectedHotel={selectedHotel ? hotels.find(h => h.id === selectedHotel) || null : null} />;
       case 'operateurs':

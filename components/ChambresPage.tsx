@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import TopBar from './TopBar';
+import RoomDashboard from './RoomDashboard';
 import RoomCategories from './RoomCategories';
 import RoomCharacteristics from './RoomCharacteristics';
 import RoomOptions from './RoomOptions';
@@ -8,7 +9,8 @@ import {
   LayoutDashboard, 
   Eye, 
   List, 
-  Building2 
+  Building2,
+  BarChart3
 } from 'lucide-react';
 
 interface ChambresPageProps {
@@ -17,13 +19,20 @@ interface ChambresPageProps {
     nom: string;
     chambresTotal: number;
     chambresOccupees: number;
+    tauxOccupation: number;
   } | null;
+  onActionClick?: (action: string) => void;
 }
 
-export default function ChambresPage({ selectedHotel }: ChambresPageProps) {
-  const [activeTab, setActiveTab] = useState('chambres-categories');
+export default function ChambresPage({ selectedHotel, onActionClick }: ChambresPageProps) {
+  const [activeTab, setActiveTab] = useState('chambres-dashboard');
 
   const topBarItems = [
+    {
+      id: 'chambres-dashboard',
+      label: 'Tableau de bord',
+      icon: <BarChart3 className="h-4 w-4" />
+    },
     {
       id: 'chambres-categories',
       label: 'Catégories',
@@ -48,6 +57,8 @@ export default function ChambresPage({ selectedHotel }: ChambresPageProps) {
 
   const renderContent = () => {
     switch (activeTab) {
+      case 'chambres-dashboard':
+        return <RoomDashboard selectedHotel={selectedHotel} onActionClick={onActionClick || (() => {})} />;
       case 'chambres-categories':
         return <RoomCategories />;
       case 'chambres-caracteristiques':
@@ -57,7 +68,7 @@ export default function ChambresPage({ selectedHotel }: ChambresPageProps) {
       case 'chambres-liste':
         return <RoomList />;
       default:
-        return <RoomCategories />;
+        return <RoomDashboard selectedHotel={selectedHotel} onActionClick={onActionClick || (() => {})} />;
     }
   };
 
