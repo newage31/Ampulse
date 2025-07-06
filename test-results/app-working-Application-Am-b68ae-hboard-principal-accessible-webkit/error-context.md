@@ -1,0 +1,54 @@
+# Page snapshot
+
+```yaml
+- banner:
+  - text: S
+  - heading "SoliReserve" [level=1]
+  - img
+  - textbox "Rechercher..."
+  - button:
+    - img
+  - button:
+    - img
+  - button:
+    - img
+- heading "SoliReserve" [level=1]
+- paragraph: Sélectionnez un établissement
+- navigation:
+  - list:
+    - listitem:
+      - button "Tableau de bord":
+        - img
+        - text: Tableau de bord
+    - listitem:
+      - button "Réservations":
+        - img
+        - text: Réservations
+    - listitem:
+      - button "Chambres":
+        - img
+        - text: Chambres
+    - listitem:
+      - button "Clients":
+        - img
+        - text: Clients
+    - listitem:
+      - button "Messagerie":
+        - img
+        - text: Messagerie
+    - listitem:
+      - button "Rapports":
+        - img
+        - text: Rapports
+    - listitem:
+      - button "Gestion":
+        - img
+        - text: Gestion
+    - listitem:
+      - button "Paramètres":
+        - img
+        - text: Paramètres
+- text: Version 2.0.0
+- main:
+  - paragraph: Chargement en cours...
+```

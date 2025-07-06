@@ -57,14 +57,6 @@ INSERT INTO public.operateurs_sociaux (nom, prenom, organisation, telephone, ema
 ('Moreau', 'Jean', 'Secours Catholique', '01.42.00.13.01', 'jean.moreau@secours-catholique.fr', 'actif', 'Aide alimentaire et hébergement', 'Paris', 18, 'Spécialiste de l''aide alimentaire', '45678901234567', '89 avenue Parmentier, 75011 Paris', 'Anne Petit', '01.42.00.13.02', 'anne.petit@secours-catholique.fr', 'AGREMENT-004', '2021-09-05', ARRAY['Paris'], ARRAY['Aide alimentaire', 'Hébergement'], ARRAY['Fondation de France', 'CCAS']),
 ('Petit', 'Anne', 'CCAS Paris', '01.42.00.14.01', 'anne.petit@ccas.paris.fr', 'actif', 'Action sociale', 'Paris', 25, 'Responsable action sociale', '56789012345678', '34 rue de Charonne, 75011 Paris', 'Philippe Durand', '01.42.00.14.02', 'philippe.durand@ccas.paris.fr', 'AGREMENT-005', '2020-12-01', ARRAY['Paris'], ARRAY['Action sociale', 'Hébergement'], ARRAY['SIAO 75', 'Mission locale']);
 
--- Insertion des utilisateurs
-INSERT INTO public.users (email, nom, prenom, telephone, role, hotel_id, statut, permissions) VALUES
-('admin@soli-reserve.fr', 'Admin', 'Principal', '01.42.00.00.01', 'admin', NULL, 'actif', '[{"module": "dashboard", "actions": ["read", "write", "export"]}, {"module": "reservations", "actions": ["read", "write", "delete", "export"]}, {"module": "chambres", "actions": ["read", "write", "delete", "export"]}, {"module": "gestion", "actions": ["read", "write", "delete", "export"]}, {"module": "operateurs", "actions": ["read", "write", "delete", "export"]}, {"module": "messagerie", "actions": ["read", "write", "delete", "export"]}, {"module": "parametres", "actions": ["read", "write", "delete", "export"]}, {"module": "utilisateurs", "actions": ["read", "write", "delete", "export"]}, {"module": "comptabilite", "actions": ["read", "write", "delete", "export"]}]'),
-('manager.residencesaintmartin@soli-reserve.fr', 'Dubois', 'Marie', '01.42.00.01.01', 'manager', 1, 'actif', '[{"module": "dashboard", "actions": ["read", "write"]}, {"module": "reservations", "actions": ["read", "write", "delete"]}, {"module": "chambres", "actions": ["read", "write"]}, {"module": "gestion", "actions": ["read", "write"]}, {"module": "operateurs", "actions": ["read", "write"]}, {"module": "messagerie", "actions": ["read", "write"]}, {"module": "comptabilite", "actions": ["read", "write"]}]'),
-('manager.foyersolidairebelleville@soli-reserve.fr', 'Martin', 'Pierre', '01.42.00.02.01', 'manager', 2, 'actif', '[{"module": "dashboard", "actions": ["read", "write"]}, {"module": "reservations", "actions": ["read", "write", "delete"]}, {"module": "chambres", "actions": ["read", "write"]}, {"module": "gestion", "actions": ["read", "write"]}, {"module": "operateurs", "actions": ["read", "write"]}, {"module": "messagerie", "actions": ["read", "write"]}, {"module": "comptabilite", "actions": ["read", "write"]}]'),
-('comptable1@soli-reserve.fr', 'Bernard', 'Sophie', '01.42.00.03.01', 'comptable', NULL, 'actif', '[{"module": "dashboard", "actions": ["read"]}, {"module": "gestion", "actions": ["read", "write"]}, {"module": "comptabilite", "actions": ["read", "write", "export"]}]'),
-('receptionniste1.1@soli-reserve.fr', 'Thomas', 'Catherine', '01.42.00.04.01', 'receptionniste', 1, 'actif', '[{"module": "dashboard", "actions": ["read"]}, {"module": "reservations", "actions": ["read", "write"]}, {"module": "chambres", "actions": ["read"]}, {"module": "gestion", "actions": ["read"]}]');
-
 -- Insertion des réservations
 INSERT INTO public.reservations (usager_id, chambre_id, hotel_id, date_arrivee, date_depart, statut, prescripteur, prix, duree, operateur_id, notes) VALUES
 (1, 1, 1, '2024-01-15', '2024-02-15', 'EN_COURS', 'SIAO 75', 45.00, 31, 1, 'Accompagnement social en cours'),
@@ -178,49 +170,4 @@ INSERT INTO public.clients (nom, prenom, email, telephone, adresse, ville, code_
 ('Dubois', 'Jean', 'jean.dubois@email.com', '06.12.34.56.78', '123 rue de la République, 75011 Paris', 'Paris', '75011', '1985-03-15', '185031512345678', 'Célibataire', 0, 850.00, ARRAY['RSA', 'APL'], '{"1": 40.00, "2": 38.00}', 'Client fidèle - prix conventionné'),
 ('Martin', 'Marie', 'marie.martin@email.com', '06.98.76.54.32', '45 avenue Jean Jaurès, 75019 Paris', 'Paris', '75019', '1992-07-22', '192072298765432', 'Divorcée', 2, 1200.00, ARRAY['RSA', 'APL', 'Allocation familiale'], '{"1": 42.00, "2": 40.00}', 'Famille avec enfants'),
 ('Bernard', 'Pierre', NULL, '06.45.67.89.01', '67 rue Saint-Antoine, 75004 Paris', 'Paris', '75004', '1978-11-08', '178110845678901', 'Marié', 1, 1500.00, ARRAY['RSA', 'APL'], '{"1": 45.00, "2": 42.00}', 'Prix standard'),
-('Thomas', 'Sophie', 'sophie.thomas@email.com', '06.23.45.67.89', '89 avenue Parmentier, 75011 Paris', 'Paris', '75011', '1989-05-30', '189053023456789', 'Célibataire', 0, 950.00, ARRAY['RSA', 'APL'], '{"1": 43.00, "2": 41.00}', 'Jeune en insertion');
-
--- Insertion des conversations
-INSERT INTO public.conversations (operateur_id, admin_id, sujet, nombre_messages, statut, derniere_message, non_lus) VALUES
-(1, (SELECT id FROM public.users WHERE email = 'admin@soli-reserve.fr'), 'Demande de prolongation - Réservation #1', 3, 'active', 'Je confirme la prolongation pour 15 jours supplémentaires', 1),
-(2, (SELECT id FROM public.users WHERE email = 'admin@soli-reserve.fr'), 'Question sur les tarifs conventionnés', 2, 'active', 'Les tarifs sont bien appliqués selon la convention', 0),
-(3, (SELECT id FROM public.users WHERE email = 'manager.residencesaintmartin@soli-reserve.fr'), 'Accompagnement social - Usager Dubois', 5, 'active', 'L''accompagnement se déroule bien, l''usager progresse', 2);
-
--- Insertion des messages
-INSERT INTO public.messages (conversation_id, expediteur_id, expediteur_type, destinataire_id, destinataire_type, sujet, contenu, statut, priorite) VALUES
-(1, (SELECT id FROM public.users WHERE email = 'admin@soli-reserve.fr'), 'admin', 1, 'operateur', 'Demande de prolongation', 'Bonjour, je souhaite demander une prolongation de 15 jours pour la réservation #1 de M. Dubois Jean.', 'envoye', 'normale'),
-(1, 1, 'operateur', (SELECT id FROM public.users WHERE email = 'admin@soli-reserve.fr'), 'admin', 'Réponse prolongation', 'Bonjour, je confirme la prolongation pour 15 jours supplémentaires. L''accompagnement social se poursuit.', 'envoye', 'normale'),
-(1, (SELECT id FROM public.users WHERE email = 'admin@soli-reserve.fr'), 'admin', 1, 'operateur', 'Confirmation', 'Parfait, je confirme la prolongation pour 15 jours supplémentaires.', 'envoye', 'normale'),
-(2, (SELECT id FROM public.users WHERE email = 'admin@soli-reserve.fr'), 'admin', 2, 'operateur', 'Question tarifs', 'Bonjour, pouvez-vous me confirmer les tarifs conventionnés pour le Foyer Solidaire Belleville ?', 'envoye', 'normale'),
-(2, 2, 'operateur', (SELECT id FROM public.users WHERE email = 'admin@soli-reserve.fr'), 'admin', 'Réponse tarifs', 'Bonjour, les tarifs sont bien appliqués selon la convention en vigueur.', 'envoye', 'normale'),
-(3, (SELECT id FROM public.users WHERE email = 'manager.residencesaintmartin@soli-reserve.fr'), 'admin', 3, 'operateur', 'Accompagnement social', 'Bonjour, comment se déroule l''accompagnement social de M. Dubois Jean ?', 'envoye', 'normale'),
-(3, 3, 'operateur', (SELECT id FROM public.users WHERE email = 'manager.residencesaintmartin@soli-reserve.fr'), 'admin', 'Suivi accompagnement', 'L''accompagnement se déroule bien, l''usager progresse dans ses démarches.', 'envoye', 'normale'),
-(3, 3, 'operateur', (SELECT id FROM public.users WHERE email = 'manager.residencesaintmartin@soli-reserve.fr'), 'admin', 'Mise à jour', 'Mise à jour : l''usager a trouvé un travail temporaire et cherche un logement permanent.', 'envoye', 'normale');
-
--- Insertion des notifications
-INSERT INTO public.notifications (user_id, type, message, lu) VALUES
-((SELECT id FROM public.users WHERE email = 'admin@soli-reserve.fr'), 'info', 'Nouvelle réservation créée - Réservation #8', false),
-((SELECT id FROM public.users WHERE email = 'manager.residencesaintmartin@soli-reserve.fr'), 'success', 'Chambre 101 libérée - disponible pour nouvelle réservation', false),
-((SELECT id FROM public.users WHERE email = 'comptable1@soli-reserve.fr'), 'warning', 'Facture impayée depuis 30 jours - Réservation #3', false),
-((SELECT id FROM public.users WHERE email = 'receptionniste1.1@soli-reserve.fr'), 'info', 'Nouveau message de l''opérateur SIAO 75', false);
-
--- Mise à jour des statistiques des hôtels
-UPDATE public.hotels SET 
-    chambres_occupees = (
-        SELECT COUNT(*) 
-        FROM public.rooms r 
-        WHERE r.hotel_id = hotels.id AND r.statut = 'occupee'
-    ),
-    taux_occupation = (
-        SELECT ROUND((COUNT(CASE WHEN statut = 'occupee' THEN 1 END) * 100.0 / COUNT(*)), 2)
-        FROM public.rooms r 
-        WHERE r.hotel_id = hotels.id
-    );
-
--- Mise à jour du nombre de réservations par opérateur
-UPDATE public.operateurs_sociaux SET 
-    nombre_reservations = (
-        SELECT COUNT(*) 
-        FROM public.reservations r 
-        WHERE r.operateur_id = operateurs_sociaux.id
-    ); 
+('Thomas', 'Sophie', 'sophie.thomas@email.com', '06.23.45.67.89', '89 avenue Parmentier, 75011 Paris', 'Paris', '75011', '1989-05-30', '189053023456789', 'Célibataire', 0, 950.00, ARRAY['RSA', 'APL'], '{"1": 43.00, "2": 41.00}', 'Jeune en insertion'); 

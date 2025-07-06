@@ -1,0 +1,48 @@
+{
+  "exportDate": "2025-07-06T23:33:25.801Z",
+  "tablesExported": 10,
+  "tablesFailed": 2,
+  "totalRecords": 30,
+  "tableStats": [
+    {
+      "table": "hotels",
+      "recordCount": 5
+    },
+    {
+      "table": "operateurs_sociaux",
+      "recordCount": 5
+    },
+    {
+      "table": "conventions_prix",
+      "recordCount": 6
+    },
+    {
+      "table": "reservations",
+      "recordCount": 8
+    },
+    {
+      "table": "processus_reservations",
+      "recordCount": 4
+    },
+    {
+      "table": "conversations",
+      "recordCount": 0
+    },
+    {
+      "table": "messages",
+      "recordCount": 0
+    },
+    {
+      "table": "users",
+      "recordCount": 0
+    },
+    {
+      "table": "document_templates",
+      "recordCount": 2
+    },
+    {
+      "table": "notifications",
+      "recordCount": 0
+    }
+  ]
+}
