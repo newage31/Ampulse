@@ -25,7 +25,8 @@ import {
   CreditCard,
   FileCheck,
   CalendarCheck,
-  CalendarX
+  CalendarX,
+  Receipt
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -229,6 +230,72 @@ export default function ReservationDetailPage({
     }
   };
 
+  const handleGenerateInvoice = async () => {
+    try {
+      console.log('Génération de la facture pour:', reservation);
+      
+      // Trouver le template de facture
+      const invoiceTemplate = templates.find(t => t.type === 'facture');
+      if (!invoiceTemplate) {
+        alert('Template de facture non trouvé');
+        return;
+      }
+
+      // Générer un numéro de facture unique
+      const invoiceNumber = `FAC-${new Date().getFullYear()}-${String(reservation.id).padStart(4, '0')}`;
+      
+      // Calculer les montants
+      const montantHT = reservation.prix * reservation.duree;
+      const tva = montantHT * 0.20; // 20% de TVA
+      const montantTTC = montantHT + tva;
+
+      // Préparer les variables pour le PDF
+      const variables = {
+        numero_facture: invoiceNumber,
+        date_facture: new Date().toLocaleDateString('fr-FR'),
+        date_echeance: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR'), // +30 jours
+        nom_client: reservation.usager,
+        adresse_client: hotel?.adresse || '',
+        ville_client: hotel?.ville || '',
+        code_postal_client: hotel?.codePostal || '',
+        telephone_client: hotel?.telephone || '',
+        email_client: hotel?.email || '',
+        nom_hotel: reservation.hotel,
+        chambre: reservation.chambre,
+        date_arrivee: new Date(reservation.dateArrivee).toLocaleDateString('fr-FR'),
+        date_depart: new Date(reservation.dateDepart).toLocaleDateString('fr-FR'),
+        nombre_nuits: reservation.duree.toString(),
+        prix_unitaire: reservation.prix.toString(),
+        montant_ht: montantHT.toString(),
+        taux_tva: '20',
+        montant_tva: tva.toFixed(2),
+        montant_ttc: montantTTC.toFixed(2),
+        prescripteur: reservation.prescripteur,
+        numero_dossier: reservation.id.toString(),
+        conditions_paiement: 'Paiement à 30 jours',
+        mode_paiement: 'Virement bancaire',
+        iban: 'FR76 1234 5678 9012 3456 7890 123',
+        bic: 'BNPAFRPP123',
+        reference: `REF-${reservation.id}`,
+        notes: `Facture générée automatiquement pour la réservation #${reservation.id}`,
+        date_generation: new Date().toLocaleDateString('fr-FR')
+      };
+
+      // Générer et télécharger le PDF de facture
+      await PDFGenerator.downloadPDF({
+        template: invoiceTemplate,
+        variables,
+        filename: `facture_${reservation.id}_${reservation.usager}.pdf`
+      });
+
+      console.log('Facture générée avec succès');
+      alert('Facture générée et téléchargée avec succès !');
+    } catch (error) {
+      console.error('Erreur lors de la génération de la facture:', error);
+      alert('Erreur lors de la génération de la facture. Veuillez réessayer.');
+    }
+  };
+
   const handleDeleteReservation = () => {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette réservation ?')) {
       onDeleteReservation?.(reservation.id);
@@ -312,6 +379,14 @@ export default function ReservationDetailPage({
               >
                 <Edit className="w-4 h-4 mr-2" />
                 Modifier
+              </Button>
+              
+              <Button
+                onClick={handleGenerateInvoice}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <Receipt className="w-4 h-4 mr-2" />
+                Générer facture
               </Button>
             </div>
           </div>
@@ -595,6 +670,16 @@ export default function ReservationDetailPage({
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Télécharger le bon de réservation
+                </Button>
+                
+                {/* Bouton de génération de facture - visible pour toutes les réservations */}
+                <Button
+                  onClick={handleGenerateInvoice}
+                  variant="outline"
+                  className="w-full text-green-600 border-green-600 hover:bg-green-50"
+                >
+                  <Receipt className="w-4 h-4 mr-2" />
+                  Générer la facture
                 </Button>
                 
                 {reservation.statut === 'CONFIRMEE' && (
