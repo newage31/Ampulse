@@ -179,16 +179,16 @@ export default function ReservationsDashboard({
         </Card>
       </div>
 
-      {/* Actions rapides */}
+      {/* Actions rapides - Réservations uniquement */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
             <BarChart3 className="h-5 w-5 mr-2 text-blue-600" />
-            Actions rapides
+            Actions rapides - Réservations
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             <Button
               variant="outline"
               className="h-24 flex flex-col items-center justify-center space-y-2 bg-blue-50 hover:bg-blue-100 border-blue-200 transition-all duration-200 hover:scale-105"
@@ -227,26 +227,6 @@ export default function ReservationsDashboard({
               <CalendarDays className="h-6 w-6 text-orange-600" />
               <span className="text-xs text-center font-medium">Voir calendrier</span>
               <span className="text-xs text-gray-500 text-center hidden md:block">Consulter le planning</span>
-            </Button>
-
-            <Button
-              variant="outline"
-              className="h-24 flex flex-col items-center justify-center space-y-2 bg-indigo-50 hover:bg-indigo-100 border-indigo-200 transition-all duration-200 hover:scale-105"
-              onClick={() => onActionClick?.('add-client')}
-            >
-              <UserPlus className="h-6 w-6 text-indigo-600" />
-              <span className="text-xs text-center font-medium">Ajouter client</span>
-              <span className="text-xs text-gray-500 text-center hidden md:block">Enregistrer un nouveau client</span>
-            </Button>
-
-            <Button
-              variant="outline"
-              className="h-24 flex flex-col items-center justify-center space-y-2 bg-pink-50 hover:bg-pink-100 border-pink-200 transition-all duration-200 hover:scale-105"
-              onClick={() => onActionClick?.('add-hotel')}
-            >
-              <Building className="h-6 w-6 text-pink-600" />
-              <span className="text-xs text-center font-medium">Ajouter hôtel</span>
-              <span className="text-xs text-gray-500 text-center hidden md:block">Ajouter un nouvel hôtel</span>
             </Button>
           </div>
         </CardContent>
