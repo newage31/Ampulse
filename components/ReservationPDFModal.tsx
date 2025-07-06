@@ -218,8 +218,6 @@ export default function ReservationPDFModal({
     }
   };
 
-
-
   const generatePDF = async () => {
     if (!selectedTemplate) return;
 
@@ -344,8 +342,8 @@ export default function ReservationPDFModal({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-hidden">
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 h-full p-6 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 h-full p-6">
             {/* Colonne gauche - Informations et sélection */}
             <div className="space-y-6 min-w-0">
               {/* Informations de la réservation */}
@@ -649,17 +647,15 @@ export default function ReservationPDFModal({
                       />
                       <Button
                         onClick={generatePDF}
-                        disabled={isLoading}
-                        className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
+                        className="bg-orange-500 hover:bg-orange-600 text-white"
+                        disabled={!selectedTemplate || isLoading}
                       >
-                        {isLoading ? 'Génération...' : 'Générer PDF'}
+                        {isLoading ? 'Génération en cours...' : 'Générer le PDF'}
                       </Button>
                     </div>
 
                     {error && (
-                      <div className="p-3 bg-red-50 border border-red-200 rounded">
-                        <p className="text-red-700 text-sm">{error}</p>
-                      </div>
+                      <div className="text-red-600 text-sm mt-2">{error}</div>
                     )}
 
                     {isLoading && (
