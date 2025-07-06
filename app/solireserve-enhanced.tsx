@@ -15,6 +15,7 @@ import { AddRoomModal, NewReservationModal, EditHotelModal } from '../components
 import { useNotifications } from '../hooks/useNotifications';
 import { useModalActions } from '../hooks/useModalActions';
 import { generateHotels, generateReservations, generateOperateursSociaux, generateConventionsPrix, generateProcessusReservations } from '../utils/dataGenerators';
+import { documentTemplates } from '../utils/syntheticData';
 import { Hotel, Reservation, OperateurSocial, ConventionPrix, ProcessusReservation, DashboardStats, DocumentTemplate } from '../types';
 
 export default function SoliReserveEnhanced() {
@@ -38,47 +39,7 @@ export default function SoliReserveEnhanced() {
   });
 
   // Templates de documents
-  const [templates] = useState<DocumentTemplate[]>([
-    { 
-      id: 1, 
-      nom: 'Bon de réservation', 
-      type: 'bon_reservation', 
-      description: 'Template pour les bons de réservation',
-      contenu: 'Template de bon de réservation',
-      variables: [],
-      statut: 'actif',
-      dateCreation: new Date().toISOString(),
-      dateModification: new Date().toISOString(),
-      version: '1.0',
-      format: 'pdf'
-    },
-    { 
-      id: 2, 
-      nom: 'Prolongation', 
-      type: 'prolongation_reservation', 
-      description: 'Template pour les prolongations',
-      contenu: 'Template de prolongation',
-      variables: [],
-      statut: 'actif',
-      dateCreation: new Date().toISOString(),
-      dateModification: new Date().toISOString(),
-      version: '1.0',
-      format: 'pdf'
-    },
-    { 
-      id: 3, 
-      nom: 'Fin de prise en charge', 
-      type: 'fin_prise_charge', 
-      description: 'Template pour les fins de prise en charge',
-      contenu: 'Template de fin de prise en charge',
-      variables: [],
-      statut: 'actif',
-      dateCreation: new Date().toISOString(),
-      dateModification: new Date().toISOString(),
-      version: '1.0',
-      format: 'pdf'
-    }
-  ]);
+  const [templates] = useState<DocumentTemplate[]>(documentTemplates);
 
   const { notifications, addNotification, removeNotification } = useNotifications();
   const {
@@ -327,6 +288,7 @@ export default function SoliReserveEnhanced() {
               reservations={reservations}
               processus={processus}
               onReservationSelect={handleReservationSelect}
+              templates={templates}
             />
           )}
           

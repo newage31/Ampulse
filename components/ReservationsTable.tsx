@@ -537,7 +537,7 @@ export default function ReservationsTable({ reservations, processus, hotels = []
                   >
                     <option value="all">Tous les établissements</option>
                     {hotels.map((hotel) => (
-                      <option key={hotel} value={hotel}>{hotel}</option>
+                      <option key={hotel.id} value={hotel.nom}>{hotel.nom}</option>
                     ))}
                   </select>
                 </div>

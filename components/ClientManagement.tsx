@@ -26,6 +26,7 @@ import {
   MoreHorizontal
 } from 'lucide-react';
 import { useState } from 'react';
+import AddClientPage from './AddClientPage';
 
 interface Client {
   id: number;
@@ -178,6 +179,7 @@ export default function ClientManagement() {
   const [isAddingClient, setIsAddingClient] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [showAddClientPage, setShowAddClientPage] = useState(false);
 
   // Calculs globaux
   const totalClients = clients.length;
@@ -251,7 +253,7 @@ export default function ClientManagement() {
       label: 'Nouveau client',
       icon: <UserPlus className="h-5 w-5" />,
       color: 'bg-blue-500 hover:bg-blue-600',
-      action: () => setIsAddingClient(true)
+      action: () => setShowAddClientPage(true)
     },
     {
       id: 'export-clients',
@@ -277,6 +279,26 @@ export default function ClientManagement() {
     }
   ];
 
+  // Fonctions de gestion des clients
+  const handleClientAdded = (newClient: Client) => {
+    setClients(prev => [...prev, newClient]);
+    setShowAddClientPage(false);
+  };
+
+  const handleCancelAddClient = () => {
+    setShowAddClientPage(false);
+  };
+
+  // Afficher la page d'ajout de client si demandé
+  if (showAddClientPage) {
+    return (
+      <AddClientPage
+        onClientAdded={handleClientAdded}
+        onCancel={handleCancelAddClient}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* En-tête avec actions rapides */}
@@ -294,7 +316,7 @@ export default function ClientManagement() {
             <Eye className="h-4 w-4 mr-2" />
             {viewMode === 'grid' ? 'Liste' : 'Grille'}
           </Button>
-          <Button onClick={() => setIsAddingClient(true)} className="flex items-center space-x-2">
+          <Button onClick={() => setShowAddClientPage(true)} className="flex items-center space-x-2">
             <Plus className="h-4 w-4" />
             <span>Nouveau client</span>
           </Button>

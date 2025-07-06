@@ -587,5 +587,80 @@ Date de génération: {{date_generation}}`,
     dateModification: new Date().toISOString(),
     version: "1.0",
     format: "pdf" as const
+  },
+  {
+    id: 4,
+    nom: "Facture",
+    type: "facture" as const,
+    description: "Document de facturation",
+    contenu: `FACTURE
+
+EN-TÊTE EXPÉDITEUR:
+Voyages Services Plus
+Tour Liberty 17 place des Reflets
+92400 Courbevoie
+reservation@vesta-operateursolidaire.fr
+SIRET: 12345678901234
+TVA Intracommunautaire: FR12345678901
+
+INFORMATIONS DESTINATAIRE:
+Nom: {{nom_usager}}
+Adresse: {{adresse}}
+Ville: {{ville}}
+Code postal: {{code_postal}}
+Téléphone: {{telephone}}
+Email: {{email}}
+
+DÉTAILS DE LA FACTURE:
+Numéro de facture: {{numero_facture}}
+Date de facture: {{date_facture}}
+Numéro de dossier: {{numero_dossier}}
+Établissement: {{nom_hotel}}
+Prescripteur: {{prescripteur}}
+
+DÉTAIL DES PRESTATIONS:
+Hébergement d'urgence
+- Date d'arrivée: {{date_arrivee}}
+- Date de départ: {{date_depart}}
+- Nombre de nuits: {{nombre_nuits}}
+- Prix par nuit: {{prix_nuit}}€
+- Montant total: {{montant_total}}€
+
+TVA: {{tva}}€
+Montant HT: {{montant_ht}}€
+Montant TTC: {{montant_ttc}}€
+
+CONDITIONS DE PAIEMENT:
+Paiement à 30 jours
+IBAN: FR76 1234 5678 9012 3456 7890 123
+BIC: ABCDEFGHIJK
+
+Date de génération: {{date_generation}}`,
+    variables: [
+      { nom: "nom_usager", description: "Nom de l'usager", type: "texte" as const, obligatoire: true },
+      { nom: "adresse", description: "Adresse de l'usager", type: "adresse" as const, obligatoire: false },
+      { nom: "ville", description: "Ville de l'usager", type: "texte" as const, obligatoire: false },
+      { nom: "code_postal", description: "Code postal de l'usager", type: "texte" as const, obligatoire: false },
+      { nom: "telephone", description: "Téléphone de l'usager", type: "telephone" as const, obligatoire: false },
+      { nom: "email", description: "Email de l'usager", type: "email" as const, obligatoire: false },
+      { nom: "numero_facture", description: "Numéro de facture", type: "texte" as const, obligatoire: true },
+      { nom: "date_facture", description: "Date de facture", type: "date" as const, obligatoire: true },
+      { nom: "numero_dossier", description: "Numéro de dossier", type: "texte" as const, obligatoire: true },
+      { nom: "nom_hotel", description: "Nom de l'hôtel", type: "texte" as const, obligatoire: true },
+      { nom: "prescripteur", description: "Prescripteur", type: "texte" as const, obligatoire: true },
+      { nom: "date_arrivee", description: "Date d'arrivée", type: "date" as const, obligatoire: true },
+      { nom: "date_depart", description: "Date de départ", type: "date" as const, obligatoire: true },
+      { nom: "nombre_nuits", description: "Nombre de nuits", type: "nombre" as const, obligatoire: true },
+      { nom: "prix_nuit", description: "Prix par nuit", type: "montant" as const, obligatoire: true },
+      { nom: "montant_total", description: "Montant total", type: "montant" as const, obligatoire: true },
+      { nom: "tva", description: "Montant TVA", type: "montant" as const, obligatoire: true },
+      { nom: "montant_ht", description: "Montant HT", type: "montant" as const, obligatoire: true },
+      { nom: "montant_ttc", description: "Montant TTC", type: "montant" as const, obligatoire: true }
+    ],
+    statut: "actif" as const,
+    dateCreation: new Date().toISOString(),
+    dateModification: new Date().toISOString(),
+    version: "1.0",
+    format: "pdf" as const
   }
 ]; 
