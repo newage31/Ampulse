@@ -86,7 +86,7 @@ export default function ReservationsPage({
           />
         );
       case 'reservations-calendar':
-        return <ReservationsCalendar reservations={reservations} />;
+        return <ReservationsCalendar reservations={reservations} hotels={hotels} />;
       case 'reservations-availability':
         return <ReservationsAvailability reservations={reservations} hotels={hotels} />;
       case 'reservations-all':
