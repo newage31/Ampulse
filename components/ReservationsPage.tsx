@@ -2,7 +2,6 @@ import { useState } from 'react';
 import TopBar from './TopBar';
 import ReservationsDashboard from './ReservationsDashboard';
 import ReservationsCalendar from './ReservationsCalendar';
-import ReservationsAvailability from './ReservationsAvailability';
 import ReservationsTable from './ReservationsTable';
 import ReservationDetailPage from './ReservationDetailPage';
 import { ProlongationModal, EndCareModal } from './Modals';
@@ -57,11 +56,6 @@ export default function ReservationsPage({
       id: 'reservations-calendar',
       label: 'Calendrier',
       icon: <CalendarDays className="h-4 w-4" />
-    },
-    {
-      id: 'reservations-availability',
-      label: 'La Disponibilité De L\'Aperçu',
-      icon: <Eye className="h-4 w-4" />
     }
   ];
 
@@ -87,13 +81,13 @@ export default function ReservationsPage({
         );
       case 'reservations-calendar':
         return <ReservationsCalendar reservations={reservations} hotels={hotels} />;
-      case 'reservations-availability':
-        return <ReservationsAvailability reservations={reservations} hotels={hotels} />;
+
       case 'reservations-all':
         return (
           <ReservationsTable
             reservations={reservations}
             processus={processus}
+            hotels={hotels}
             onReservationSelect={handleReservationSelect}
             onProlongReservation={handleProlongReservation}
             onEndCare={handleEndCare}
