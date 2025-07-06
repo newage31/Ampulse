@@ -240,7 +240,7 @@ export class ReportGenerator {
     this.doc.text(`Taux d'occupation moyen: ${avgOccupancy.toFixed(1)}%`, 20, this.doc.lastAutoTable.finalY + 35);
     this.doc.text(`Meilleur établissement: ${bestHotel.name} (${bestHotel.occupancy}%)`, 20, this.doc.lastAutoTable.finalY + 45);
     
-    return this.doc.output('bloburl') as string;
+    return this.doc.output('bloburl') as unknown as string;
   }
 
   // Générer un rapport d'analyse clients
@@ -294,7 +294,7 @@ export class ReportGenerator {
       headStyles: { fillColor: [147, 51, 234] }
     });
     
-    return this.doc.output('bloburl') as string;
+    return this.doc.output('bloburl') as unknown as string;
   }
 
   // Méthodes utilitaires
