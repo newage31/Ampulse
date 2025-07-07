@@ -64,25 +64,6 @@ function DashboardContent() {
               </div>
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Actions rapides</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <Button className="w-full" variant="outline">
-                  Tester la connexion DB
-                </Button>
-                <Button className="w-full" variant="outline">
-                  Migrer les données
-                </Button>
-                <Button className="w-full" variant="outline">
-                  Voir les logs
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         <div className="mt-8">

@@ -15,11 +15,160 @@ export interface Hotel {
 
 export interface Room {
   id: number;
+  hotelId: number;
   numero: string;
   type: string;
   prix: number;
   statut: 'disponible' | 'occupee' | 'maintenance';
   description?: string;
+  etage?: number;
+  capacite: number;
+  equipements?: string[];
+  accessibilite: boolean;
+  prixSemaine?: number;
+  prixMois?: number;
+  notes?: string;
+  dateMaintenance?: string;
+  dureeMaintenance: number;
+}
+
+export interface RoomType {
+  id: number;
+  nom: string;
+  description?: string;
+  capaciteMin: number;
+  capaciteMax: number;
+  prixBase: number;
+  equipementsStandards?: string[];
+}
+
+export interface RoomPricing {
+  id: number;
+  hotelId: number;
+  roomTypeId: number;
+  prixJour: number;
+  prixSemaine?: number;
+  prixMois?: number;
+  saison: 'basse' | 'standard' | 'haute' | 'pic';
+  dateDebut?: string;
+  dateFin?: string;
+  actif: boolean;
+}
+
+export interface RoomAvailability {
+  id: number;
+  roomId: number;
+  dateDisponibilite: string;
+  statut: 'disponible' | 'reservee' | 'occupee' | 'maintenance' | 'bloquee';
+  reservationId?: number;
+  prixJour?: number;
+  notes?: string;
+}
+
+export interface RoomStatusHistory {
+  id: number;
+  roomId: number;
+  ancienStatut: string;
+  nouveauStatut: string;
+  raison?: string;
+  utilisateurId?: string;
+  dateChangement: string;
+}
+
+// Interfaces pour les options et suppléments
+export interface OptionCategory {
+  id: number;
+  nom: string;
+  description?: string;
+  icone?: string;
+  couleur: string;
+  ordre: number;
+  actif: boolean;
+}
+
+export interface RoomOption {
+  id: number;
+  nom: string;
+  description?: string;
+  categorieId?: number;
+  type: 'option' | 'supplement' | 'service';
+  prix: number;
+  prixType: 'fixe' | 'pourcentage' | 'par_nuit' | 'par_personne';
+  unite: string;
+  disponible: boolean;
+  obligatoire: boolean;
+  maxQuantite: number;
+  minQuantite: number;
+  icone?: string;
+  couleur: string;
+  ordre: number;
+  conditionsApplication?: Record<string, any>;
+}
+
+export interface RoomOptionAssignment {
+  id: number;
+  roomId: number;
+  optionId: number;
+  prixPersonnalise?: number;
+  disponible: boolean;
+  ordre: number;
+  notes?: string;
+}
+
+export interface HotelOptionAssignment {
+  id: number;
+  hotelId: number;
+  optionId: number;
+  prixPersonnalise?: number;
+  disponible: boolean;
+  ordre: number;
+  notes?: string;
+}
+
+export interface ReservationOption {
+  id: number;
+  reservationId: number;
+  optionId: number;
+  quantite: number;
+  prixUnitaire: number;
+  prixTotal: number;
+  notes?: string;
+  dateAjout: string;
+}
+
+export interface OptionPack {
+  id: number;
+  nom: string;
+  description?: string;
+  prixPack: number;
+  reductionPourcentage: number;
+  actif: boolean;
+  ordre: number;
+}
+
+export interface OptionPackItem {
+  id: number;
+  packId: number;
+  optionId: number;
+  quantite: number;
+  prixPersonnalise?: number;
+  obligatoire: boolean;
+}
+
+export interface HotelPackAssignment {
+  id: number;
+  hotelId: number;
+  packId: number;
+  prixPersonnalise?: number;
+  disponible: boolean;
+  ordre: number;
+}
+
+// Interface pour les options avec informations complètes
+export interface RoomOptionWithDetails extends RoomOption {
+  categorie?: OptionCategory;
+  prixPersonnalise?: number;
+  quantiteSelectionnee?: number;
 }
 
 export interface Reservation {
@@ -224,4 +373,258 @@ export interface DocumentPreview {
   contenu: string;
   variablesRemplies: Record<string, string>;
   dateGeneration: string;
+}
+
+// Interfaces pour la gestion des clients
+export interface ClientType {
+  id: number;
+  nom: string;
+  description?: string;
+  icone?: string;
+  couleur: string;
+  ordre: number;
+  actif: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Client {
+  id: number;
+  type_id: number;
+  nom: string;
+  prenom?: string;
+  raison_sociale?: string;
+  siret?: string;
+  siren?: string;
+  tva_intracommunautaire?: string;
+  numero_client: string;
+  statut: 'actif' | 'inactif' | 'prospect' | 'archive';
+  
+  // Informations de contact
+  email?: string;
+  telephone?: string;
+  telephone_mobile?: string;
+  fax?: string;
+  site_web?: string;
+  
+  // Adresse
+  adresse?: string;
+  complement_adresse?: string;
+  code_postal?: string;
+  ville?: string;
+  pays: string;
+  
+  // Informations spécifiques
+  date_creation?: string;
+  date_modification?: string;
+  source_acquisition?: string;
+  notes?: string;
+  tags?: string[];
+  
+  // Informations financières
+  conditions_paiement: string;
+  limite_credit?: number;
+  solde_compte: number;
+  
+  // Informations commerciales
+  commercial_id?: string;
+  secteur_activite?: string;
+  taille_entreprise?: string;
+  chiffre_affaires?: string;
+  nombre_employes?: number;
+  
+  // Informations pour associations
+  numero_agrement?: string;
+  date_agrement?: string;
+  domaine_action?: string[];
+  nombre_adherents?: number;
+  
+  // Informations pour particuliers
+  date_naissance?: string;
+  lieu_naissance?: string;
+  nationalite?: string;
+  situation_familiale?: string;
+  nombre_enfants: number;
+  profession?: string;
+  employeur?: string;
+  
+  // Informations de suivi
+  derniere_activite?: string;
+  nombre_reservations: number;
+  montant_total_reservations: number;
+  date_derniere_reservation?: string;
+  
+  // Métadonnées
+  created_at: string;
+  updated_at: string;
+  created_by?: string;
+  updated_by?: string;
+}
+
+export interface ClientContact {
+  id: number;
+  client_id: number;
+  nom: string;
+  prenom: string;
+  fonction?: string;
+  email?: string;
+  telephone?: string;
+  telephone_mobile?: string;
+  principal: boolean;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ClientDocument {
+  id: number;
+  client_id: number;
+  type_document: string;
+  nom_fichier: string;
+  chemin_fichier: string;
+  taille_fichier?: number;
+  type_mime?: string;
+  description?: string;
+  date_upload: string;
+  uploaded_by?: string;
+  created_at: string;
+}
+
+export interface ClientInteraction {
+  id: number;
+  client_id: number;
+  type_interaction: 'appel' | 'email' | 'rdv' | 'visite' | 'reservation';
+  sujet?: string;
+  description?: string;
+  date_interaction: string;
+  duree_minutes?: number;
+  resultat?: string;
+  prochaine_action?: string;
+  priorite: 'basse' | 'normale' | 'haute' | 'urgente';
+  statut: 'planifie' | 'en_cours' | 'termine' | 'annule';
+  user_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ClientNote {
+  id: number;
+  client_id: number;
+  titre?: string;
+  contenu: string;
+  type_note: 'general' | 'commercial' | 'technique' | 'administratif';
+  privee: boolean;
+  user_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ClientSegment {
+  id: number;
+  nom: string;
+  description?: string;
+  criteres?: Record<string, any>;
+  couleur: string;
+  actif: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ClientSegmentAssignment {
+  id: number;
+  client_id: number;
+  segment_id: number;
+  date_assignment: string;
+  assigned_by?: string;
+}
+
+// Interface pour les clients avec informations complètes
+export interface ClientWithDetails extends Omit<Client, 'notes'> {
+  type?: ClientType;
+  contacts?: ClientContact[];
+  documents?: ClientDocument[];
+  interactions?: ClientInteraction[];
+  notes?: ClientNote[];
+  segments?: ClientSegment[];
+  commercial?: User;
+}
+
+// Interface pour la recherche de clients
+export interface ClientSearchResult {
+  id: number;
+  numero_client: string;
+  nom_complet: string;
+  type_nom: string;
+  email?: string;
+  telephone?: string;
+  ville?: string;
+  statut: string;
+  nombre_reservations: number;
+  montant_total_reservations: number;
+}
+
+// Interface pour les statistiques clients
+export interface ClientStatistics {
+  total_clients: number;
+  clients_actifs: number;
+  nouveaux_ce_mois: number;
+  total_reservations: number;
+  chiffre_affaires_total: number;
+  repartition_par_type: Record<string, number>;
+}
+
+// Interface pour le formulaire d'ajout/modification de client
+export interface ClientFormData {
+  type_id: number;
+  nom: string;
+  prenom?: string;
+  raison_sociale?: string;
+  siret?: string;
+  siren?: string;
+  tva_intracommunautaire?: string;
+  email?: string;
+  telephone?: string;
+  telephone_mobile?: string;
+  fax?: string;
+  site_web?: string;
+  adresse?: string;
+  complement_adresse?: string;
+  code_postal?: string;
+  ville?: string;
+  pays: string;
+  date_creation?: string;
+  source_acquisition?: string;
+  notes?: string;
+  tags?: string[];
+  conditions_paiement: string;
+  limite_credit?: number;
+  commercial_id?: string;
+  secteur_activite?: string;
+  taille_entreprise?: string;
+  chiffre_affaires?: string;
+  nombre_employes?: number;
+  numero_agrement?: string;
+  date_agrement?: string;
+  domaine_action?: string[];
+  nombre_adherents?: number;
+  date_naissance?: string;
+  lieu_naissance?: string;
+  nationalite?: string;
+  situation_familiale?: string;
+  nombre_enfants: number;
+  profession?: string;
+  employeur?: string;
+}
+
+// Interface pour les filtres de recherche clients
+export interface ClientSearchFilters {
+  search_term?: string;
+  type_id?: number;
+  statut?: string;
+  ville?: string;
+  commercial_id?: string;
+  date_creation_debut?: string;
+  date_creation_fin?: string;
+  segment_id?: number;
+  limit?: number;
 } 

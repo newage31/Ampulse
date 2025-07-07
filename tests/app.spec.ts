@@ -43,18 +43,6 @@ test.describe('Application Ampulse - Tests fonctionnels', () => {
     await expect(page.locator('h1:has-text("Paramètres")')).toBeVisible();
   });
 
-  test('Test des actions rapides du dashboard', async ({ page }) => {
-    await page.goto('/');
-    
-    // Vérifier que le tableau de bord est visible
-    await expect(page.locator('h2:has-text("Tableau de bord")')).toBeVisible();
-    
-    // Vérifier que les cartes de statistiques sont présentes
-    await expect(page.locator('text=Établissements')).toBeVisible();
-    await expect(page.locator('text=Chambres totales')).toBeVisible();
-    await expect(page.locator('text=Réservations actives')).toBeVisible();
-  });
-
   test('Test de la page des réservations', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: 'Réservations' }).click();

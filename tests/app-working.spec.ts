@@ -88,18 +88,4 @@ test.describe('Application Ampulse - Tests fonctionnels (Simplifiés)', () => {
     
     console.log('✅ Connexion Supabase : OK');
   });
-
-  test('Test des actions rapides du dashboard', async ({ page }) => {
-    await page.goto('/');
-    
-    // Vérifier que le tableau de bord est visible
-    await expect(page.locator('h2:has-text("Tableau de bord")')).toBeVisible();
-    
-    // Vérifier que les statistiques sont présentes
-    await expect(page.getByRole('heading', { name: 'Établissements' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Chambres totales' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Réservations actives' })).toBeVisible();
-    
-    console.log('✅ Actions rapides Dashboard : OK');
-  });
 }); 

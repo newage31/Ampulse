@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import TopBar from './TopBar';
-import Parametres from './Parametres';
-import UsersManagement from './UsersManagement';
+import TopBar from '../layout/TopBar';
+import Parametres from '../features/Parametres';
+import ImprovedUsersManagement from '../features/ImprovedUsersManagement';
 import { 
   Settings, 
   Users, 
@@ -12,8 +12,8 @@ import {
   Shield,
   FileText
 } from 'lucide-react';
-import { User, Hotel, DocumentTemplate } from '../types';
-import DocumentsManagement from './DocumentsManagement';
+import { User, Hotel, DocumentTemplate } from '../../types';
+import DocumentsManagement from '../features/DocumentsManagement';
 
 interface ParametresPageProps {
   features: {
@@ -462,28 +462,7 @@ export default function ParametresPage({
         );
         
       case 'users':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900 mb-4"></h2>
-            </div>
-            
-            {users && onUserCreate && onUserUpdate && onUserDelete && onUserToggleStatus ? (
-              <UsersManagement
-                users={users}
-                hotels={hotels?.map(h => ({ id: h.id, nom: h.nom })) || []}
-                onUserCreate={onUserCreate}
-                onUserUpdate={onUserUpdate}
-                onUserDelete={onUserDelete}
-                onUserToggleStatus={onUserToggleStatus}
-              />
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-gray-600">Fonctionnalité de gestion des utilisateurs non disponible</p>
-              </div>
-            )}
-          </div>
-        );
+        return <ImprovedUsersManagement />;
         
       case 'documents':
         return (

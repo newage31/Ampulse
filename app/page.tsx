@@ -1,17 +1,17 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import Header from '../components/Header';
-import Sidebar from '../components/Sidebar';
-import Dashboard from '../components/Dashboard';
-import ReservationsPage from '../components/ReservationsPage';
-import ChambresPage from '../components/ChambresPage';
-import GestionPage from '../components/GestionPage';
-import OperateursTable from '../components/OperateursTable';
-import Messagerie from '../components/Messagerie';
-import ParametresPage from '../components/ParametresPage';
-import TestPDFGeneration from '../components/TestPDFGeneration';
-import ReportsPage from '../components/ReportsPage';
+import Header from '../components/layout/Header';
+import Sidebar from '../components/layout/Sidebar';
+import Dashboard from '../components/pages/Dashboard';
+import ReservationsPage from '../components/pages/ReservationsPage';
+import ChambresPage from '../components/pages/ChambresPage';
+import GestionPage from '../components/pages/GestionPage';
+import OperateursTable from '../components/features/OperateursTable';
+import Messagerie from '../components/features/Messagerie';
+import ParametresPage from '../components/pages/ParametresPage';
+import TestPDFGeneration from '../components/features/TestPDFGeneration';
+import ReportsPage from '../components/pages/ReportsPage';
 import { 
   generateHotels, 
   generateReservations, 
@@ -26,6 +26,7 @@ import {
 import { documentTemplates } from '../utils/syntheticData';
 import { Hotel, Reservation, OperateurSocial, ConventionPrix, ProcessusReservation, Message, Conversation, DashboardStats, User, DocumentTemplate } from '../types';
 import { useNotifications } from '../hooks/useNotifications';
+import { supabase } from '../lib/supabase';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -156,36 +157,110 @@ export default function Home() {
     }
   };
 
-  // Génération des données
+  // Chargement des données depuis Supabase
   useEffect(() => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const hotelsData = generateHotels();
-      const reservationsData = generateReservations();
-      const operateursData = generateOperateursSociaux();
-      const conventionsData = generateConventionsPrix(operateursData, hotelsData);
-      const processusData = generateProcessusReservations(reservationsData);
-      const conversationsData = generateConversations(operateursData);
-      const messagesData = generateMessages(conversationsData);
-      const usersData = generateUsers(hotelsData);
+    const loadDataFromSupabase = async () => {
+      setIsLoading(true);
+      setError(null);
+      
+      let transformedHotels: Hotel[] = [];
+      let transformedOperateurs: OperateurSocial[] = [];
+      
+      try {
+        // Charger les hôtels depuis Supabase
+        const { data: hotelsData, error: hotelsError } = await supabase
+          .from('hotels')
+          .select('*')
+          .order('nom');
 
-      setHotels(hotelsData);
-      setReservations(reservationsData);
-      setOperateurs(operateursData);
-      setConventions(conventionsData);
-      setProcessus(processusData);
-      setConversations(conversationsData);
-      setMessages(messagesData);
-      setUsers(usersData);
-      setTemplates(documentTemplates);
-      setIsLoading(false);
-    } catch (error) {
-      console.error('Erreur lors de la génération des données:', error);
-      setError('Erreur lors du chargement des données');
-      setIsLoading(false);
-    }
+        if (hotelsError) {
+          console.warn('Erreur lors du chargement des hôtels, utilisation des données de fallback:', hotelsError);
+          const fallbackHotels = generateHotels();
+          setHotels(fallbackHotels);
+          transformedHotels = fallbackHotels;
+          
+          // Sélectionner automatiquement le premier établissement par défaut
+          if (fallbackHotels.length > 0 && !selectedHotel) {
+            const firstHotel = fallbackHotels[0];
+            setSelectedHotel(firstHotel.id);
+            addNotification('info', `Établissement par défaut sélectionné : ${firstHotel.nom}`);
+          }
+        } else {
+          // Transformer les données Supabase pour correspondre au format attendu
+          transformedHotels = hotelsData?.map(hotel => ({
+            id: hotel.id,
+            nom: hotel.nom,
+            adresse: hotel.adresse,
+            ville: hotel.ville,
+            codePostal: hotel.code_postal,
+            telephone: hotel.telephone || '',
+            email: hotel.email || '',
+            gestionnaire: hotel.gestionnaire || 'Non spécifié',
+            statut: hotel.statut || 'ACTIF',
+            chambresTotal: hotel.chambres_total || 0,
+            chambresOccupees: hotel.chambres_occupees || 0,
+            tauxOccupation: hotel.taux_occupation || 0
+          })) || [];
+
+          setHotels(transformedHotels);
+          
+          // Sélectionner automatiquement le premier établissement par défaut
+          if (transformedHotels.length > 0 && !selectedHotel) {
+            const firstHotel = transformedHotels[0];
+            setSelectedHotel(firstHotel.id);
+            addNotification('info', `Établissement par défaut sélectionné : ${firstHotel.nom}`);
+          }
+        }
+
+        // Charger les opérateurs sociaux depuis Supabase
+        const { data: operateursData, error: operateursError } = await supabase
+          .from('operateurs_sociaux')
+          .select('*')
+          .order('nom');
+
+        if (operateursError) {
+          console.warn('Erreur lors du chargement des opérateurs, utilisation des données de fallback:', operateursError);
+          const fallbackOperateurs = generateOperateursSociaux();
+          setOperateurs(fallbackOperateurs);
+          transformedOperateurs = fallbackOperateurs;
+        } else {
+          // Transformer les données Supabase pour correspondre au format attendu
+          transformedOperateurs = operateursData?.map(operateur => ({
+            id: operateur.id,
+            nom: operateur.nom,
+            prenom: operateur.prenom,
+            organisation: operateur.type_organisme,
+            telephone: operateur.telephone,
+            email: operateur.email,
+            statut: operateur.statut,
+            specialite: 'Accompagnement global',
+            zoneIntervention: operateur.ville,
+            nombreReservations: 0,
+            dateCreation: operateur.created_at ? new Date(operateur.created_at).toLocaleDateString('fr-FR') : '',
+            notes: ''
+          })) || [];
+
+          setOperateurs(transformedOperateurs);
+        }
+
+        // Utiliser les données de fallback pour les autres tables (à implémenter plus tard)
+        setReservations(generateReservations());
+        setConventions(generateConventionsPrix(transformedOperateurs, transformedHotels));
+        setProcessus(generateProcessusReservations(generateReservations()));
+        setConversations(generateConversations(transformedOperateurs));
+        setMessages(generateMessages(generateConversations(transformedOperateurs)));
+        setUsers(generateUsers(transformedHotels));
+        setTemplates(documentTemplates);
+        
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Erreur lors du chargement des données:', error);
+        setError('Erreur lors du chargement des données');
+        setIsLoading(false);
+      }
+    };
+
+    loadDataFromSupabase();
   }, []);
 
   // Charger les paramètres au démarrage
@@ -284,11 +359,10 @@ export default function Home() {
       case 'reservations':
         return (
           <ReservationsPage
-            reservations={filteredReservations}
-            processus={processus}
             hotels={filteredHotels}
             operateurs={operateurs}
             templates={templates}
+            selectedHotel={selectedHotel ? hotels.find(h => h.id === selectedHotel)?.nom : undefined}
             onReservationSelect={handleReservationSelect}
           />
         );
