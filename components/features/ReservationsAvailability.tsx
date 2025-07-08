@@ -285,10 +285,28 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
 
   // Générer des caractéristiques aléatoires pour les chambres
   const getRandomCharacteristics = () => {
+    const characteristicsMap: { [key: string]: string } = {
+      'WiFi': 'wifi',
+      'Climatisation': 'climatisation',
+      'Balcon': 'balcon',
+      'Vue mer': 'vue_mer',
+      'TV': 'tv',
+      'Salle de bain privée': 'salle_bain_privee'
+    };
+    
     const allCharacteristics = getAvailableCharacteristics();
     const numCharacteristics = Math.floor(Math.random() * 4) + 2; // 2-5 caractéristiques
     const shuffled = [...allCharacteristics].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, numCharacteristics);
+    const selectedChars = shuffled.slice(0, numCharacteristics);
+    
+    // Convertir en objet avec valeurs booléennes
+    const characteristicsObj: { [key: string]: boolean } = {};
+    selectedChars.forEach(char => {
+      const key = characteristicsMap[char] || char.toLowerCase().replace(/ /g, '_');
+      characteristicsObj[key] = true;
+    });
+    
+    return characteristicsObj;
   };
 
   // Filtrer les réservations selon les critères de recherche
@@ -580,16 +598,42 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
                       <div className="pt-2">
                         <p className="text-xs font-medium text-gray-700 mb-1">Équipements :</p>
                         <div className="flex flex-wrap gap-1">
-                          {room.characteristics.slice(0, 3).map((char: string) => (
-                            <Badge key={char} variant="outline" className="text-xs px-1 py-0">
-                              {char}
-                            </Badge>
-                          ))}
-                          {room.characteristics.length > 3 && (
-                            <Badge variant="outline" className="text-xs px-1 py-0">
-                              +{room.characteristics.length - 3}
-                            </Badge>
-                          )}
+                          {(() => {
+                            // Convertir l'objet characteristics en tableau d'équipements
+                            const charArray = Array.isArray(room.characteristics) 
+                              ? room.characteristics 
+                              : Object.entries(room.characteristics || {})
+                                  .filter(([key, value]) => value === true)
+                                  .map(([key]) => {
+                                    switch(key) {
+                                      case 'wifi': return 'WiFi';
+                                      case 'climatisation': return 'Climatisation';
+                                      case 'balcon': return 'Balcon';
+                                      case 'vue_mer': return 'Vue mer';
+                                      case 'tv': return 'TV';
+                                      case 'salle_bain_privee': return 'Salle de bain privée';
+                                      default: return key;
+                                    }
+                                  });
+                            
+                            return charArray.slice(0, 3).map((char: string) => (
+                              <Badge key={char} variant="outline" className="text-xs px-1 py-0">
+                                {char}
+                              </Badge>
+                            ));
+                          })()}
+                          {(() => {
+                            const charArray = Array.isArray(room.characteristics) 
+                              ? room.characteristics 
+                              : Object.entries(room.characteristics || {})
+                                  .filter(([key, value]) => value === true);
+                            
+                            return charArray.length > 3 && (
+                              <Badge variant="outline" className="text-xs px-1 py-0">
+                                +{charArray.length - 3}
+                              </Badge>
+                            );
+                          })()}
                         </div>
                       </div>
                       

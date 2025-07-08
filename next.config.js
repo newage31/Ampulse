@@ -1,16 +1,19 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Configuration pour le déploiement Vercel
-  output: 'standalone',
-  // Désactiver la compression pour éviter les problèmes de build
-  compress: false,
-  // Configuration pour les images
+  // Configuration optimisée pour Vercel
   images: {
     unoptimized: true
   },
-  // Les variables d'environnement seront configurées directement sur Vercel
+  // Configuration expérimentale
   experimental: {
     esmExternals: false
+  },
+  // Configuration pour éviter les erreurs de build
+  typescript: {
+    ignoreBuildErrors: false
+  },
+  eslint: {
+    ignoreDuringBuilds: false
   }
 }
 
