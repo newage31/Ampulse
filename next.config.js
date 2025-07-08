@@ -8,10 +8,9 @@ const nextConfig = {
   images: {
     unoptimized: true
   },
-  // Configuration pour les variables d'environnement
-  env: {
-    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  // Les variables d'environnement seront configurées directement sur Vercel
+  experimental: {
+    esmExternals: false
   }
 }
 

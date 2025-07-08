@@ -1,6 +1,6 @@
 'use client';
 
-import AuthGuard from '../../components/AuthGuard';
+import AuthGuard from '../../components/layout/AuthGuard';
 import { useAuth } from '../../hooks/useAuth';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';

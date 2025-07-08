@@ -1,17 +1,17 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import Header from '../components/Header';
-import Sidebar from '../components/Sidebar';
-import Dashboard from '../components/Dashboard';
-import HotelsTable from '../components/HotelsTable';
-import ReservationsTable from '../components/ReservationsTable';
-import OperateursTable from '../components/OperateursTable';
-import HotelDetail from '../components/HotelDetail';
-import OperateurDetail from '../components/OperateurDetail';
-import Parametres from '../components/Parametres';
-import NotificationSystem from '../components/NotificationSystem';
-import { AddRoomModal, NewReservationModal, EditHotelModal } from '../components/Modals';
+import Header from '../components/layout/Header';
+import Sidebar from '../components/layout/Sidebar';
+import Dashboard from '../components/pages/Dashboard';
+import HotelsTable from '../components/features/HotelsTable';
+import ReservationsTable from '../components/features/ReservationsTable';
+import OperateursTable from '../components/features/OperateursTable';
+import HotelDetail from '../components/pages/HotelDetail';
+import OperateurDetail from '../components/pages/OperateurDetail';
+import Parametres from '../components/features/Parametres';
+import NotificationSystem from '../components/layout/NotificationSystem';
+import { AddRoomModal, NewReservationModal, EditHotelModal } from '../components/modals/Modals';
 import { useNotifications } from '../hooks/useNotifications';
 import { useModalActions } from '../hooks/useModalActions';
 import { generateHotels, generateReservations, generateOperateursSociaux, generateConventionsPrix, generateProcessusReservations } from '../utils/dataGenerators';

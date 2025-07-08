@@ -9,7 +9,7 @@ import ChambresPage from '../components/pages/ChambresPage';
 import GestionPage from '../components/pages/GestionPage';
 import OperateursTable from '../components/features/OperateursTable';
 import Messagerie from '../components/features/Messagerie';
-import ParametresPage from '../components/ParametresPage';
+import ParametresPage from '../components/pages/ParametresPage';
 import TestPDFGeneration from '../components/features/TestPDFGeneration';
 import ReportsPage from '../components/pages/ReportsPage';
 import { 
