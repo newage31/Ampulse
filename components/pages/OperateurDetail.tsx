@@ -23,8 +23,8 @@ import {
   AlertTriangle,
   Eye
 } from 'lucide-react';
-import { OperateurSocial, ConventionPrix, Hotel } from '../types';
-import { ConventionModal } from './Modals';
+import { OperateurSocial, ConventionPrix, Hotel } from '../../types';
+import { ConventionModal } from '../modals/Modals';
 import ConventionDetail from './ConventionDetail';
 import ConventionEditPage from './ConventionEditPage';
 

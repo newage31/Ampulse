@@ -1,4 +1,4 @@
-import AddClientPage from '../../components/AddClientPage';
+import AddClientPage from '../../components/pages/AddClientPage';
 
 export default function AddClientTestPage() {
   return <AddClientPage />;

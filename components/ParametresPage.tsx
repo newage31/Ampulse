@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import TopBar from './TopBar';
-import Parametres from './Parametres';
-import UsersManagement from './UsersManagement';
+import TopBar from './layout/TopBar';
+import Parametres from './features/Parametres';
+import UsersManagement from './features/UsersManagement';
 import { 
   Settings, 
   Users, 
@@ -13,7 +13,7 @@ import {
   FileText
 } from 'lucide-react';
 import { User, Hotel, DocumentTemplate } from '../types';
-import DocumentsManagement from './DocumentsManagement';
+import DocumentsManagement from './features/DocumentsManagement';
 
 interface ParametresPageProps {
   features: {

@@ -10,9 +10,17 @@ const nextConfig = {
   },
   // Configuration pour les variables d'environnement
   env: {
-    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  }
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+  },
+  // Ignorer les erreurs TypeScript pendant le build (pour le déploiement)
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+  // Ignorer les erreurs ESLint pendant le build
+  eslint: {
+    ignoreDuringBuilds: false,
+  },
 }
 
 module.exports = nextConfig 

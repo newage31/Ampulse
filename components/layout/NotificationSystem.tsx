@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Alert, AlertDescription } from '../ui/alert';
 import { X, CheckCircle, AlertTriangle, Info } from 'lucide-react';
-import { Notification } from '../types';
+import { Notification } from '../../types';
 
 interface NotificationSystemProps {
   notifications: Notification[];

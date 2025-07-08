@@ -33,7 +33,7 @@ import {
   Home,
   ArrowLeft
 } from 'lucide-react';
-import { OperateurSocial } from '../types';
+import { OperateurSocial } from '../../types';
 import AddClientPage from '../pages/AddClientPage';
 
 interface OperateursTableProps {

@@ -71,7 +71,7 @@ export default function ImprovedUsersManagement() {
   const [editingRole, setEditingRole] = useState<Role | null>(null);
 
   // Hook permissions
-  const { permissions, checkPermission } = useRolePermissions();
+  const { permissions, hasPermission } = useRolePermissions();
 
   // Chargement des données
   useEffect(() => {

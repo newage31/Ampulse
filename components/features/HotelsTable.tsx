@@ -6,7 +6,7 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Input } from '../ui/input';
 import { Search, Filter, MoreHorizontal, Phone, Mail, MapPin, Plus } from 'lucide-react';
-import { Hotel } from '../types';
+import { Hotel } from '../../types';
 
 interface HotelsTableProps {
   hotels: Hotel[];
