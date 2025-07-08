@@ -6,7 +6,7 @@ console.log('🚀 Script de Déploiement Supabase Production');
 console.log('============================================\n');
 
 // Configuration
-const PROJECT_REF = 'rnpkkpftqznqgnhuzgzr';
+const PROJECT_REF = 'xlehtdjshcurmrxedefi';
 const MIGRATIONS_DIR = 'supabase/migrations';
 
 // Couleurs pour les logs

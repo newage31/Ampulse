@@ -3,7 +3,7 @@
 ## 📋 Prérequis
 
 - CLI Supabase installé et configuré
-- Accès au projet Supabase (ID: `rnpkkpftqznqgnhuzgzr`)
+- Accès au projet Supabase (ID: `xlehtdjshcurmrxedefi`)
 - Permissions appropriées sur le projet
 
 ## 🚀 Étapes de Déploiement
@@ -19,7 +19,7 @@ Cela ouvrira votre navigateur pour vous connecter à Supabase.
 ### 2. Liaison du Projet Local
 
 ```bash
-npx supabase link --project-ref rnpkkpftqznqgnhuzgzr
+npx supabase link --project-ref xlehtdjshcurmrxedefi
 ```
 
 ### 3. Vérification de l'État
@@ -89,7 +89,7 @@ npx supabase db reset --remote
 
 ```bash
 # Régénérer les types TypeScript
-npx supabase gen types typescript --project-id rnpkkpftqznqgnhuzgzr > lib/database.types.ts
+npx supabase gen types typescript --project-id xlehtdjshcurmrxedefi > lib/database.types.ts
 ```
 
 ## 📊 Vérification Post-Déploiement
@@ -120,14 +120,14 @@ SELECT routine_name FROM information_schema.routines WHERE routine_schema = 'pub
 Assurez-vous que votre fichier `.env.local` contient :
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://rnpkkpftqznqgnhuzgzr.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=votre_clé_anon
-SUPABASE_SERVICE_ROLE_KEY=votre_clé_service_role
+NEXT_PUBLIC_SUPABASE_URL=https://xlehtdjshcurmrxedefi.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsZWh0ZGpzaGN1cm1yeGVkZWZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE4MzkyMTMsImV4cCI6MjA2NzQxNTIxM30.rUTpcdCOEzrJX_WEeDh8BAI7sMU2F55fZbyaZeDuSWI
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsZWh0ZGpzaGN1cm1yeGVkZWZpIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MTgzOTIxMywiZXhwIjoyMDY3NDE1MjEzfQ.fuZ6eQXLJOGiKvN7mTHpJv3F42PfnwtEFJmIyzBJYeY
 ```
 
 ## 📈 Monitoring
 
-- **Dashboard Supabase** : https://app.supabase.com/project/rnpkkpftqznqgnhuzgzr
+- **Dashboard Supabase** : https://app.supabase.com/project/xlehtdjshcurmrxedefi
 - **Logs** : Surveillez les logs dans le dashboard Supabase
 - **Métriques** : Vérifiez les métriques de performance
 
