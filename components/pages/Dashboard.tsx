@@ -19,7 +19,7 @@ import {
   MapPin,
   Euro
 } from 'lucide-react';
-import { DashboardStats } from '../types';
+import { DashboardStats } from '../../types';
 
 interface DashboardProps {
   stats: DashboardStats;

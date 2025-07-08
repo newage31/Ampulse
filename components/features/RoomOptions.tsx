@@ -40,7 +40,7 @@ import {
   RoomOptionWithDetails, 
   OptionPack,
   Hotel 
-} from '../types';
+} from '../../types';
 
 interface RoomOptionsProps {
   hotelId?: number;

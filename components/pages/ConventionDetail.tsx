@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
-import { ConventionPrix, Hotel, OperateurSocial } from '../types';
+import { ConventionPrix, Hotel, OperateurSocial } from '../../types';
 import { Euro, Percent, Calendar, Building2, UserCheck, AlertTriangle, ArrowLeft } from 'lucide-react';
 
 interface ConventionDetailProps {

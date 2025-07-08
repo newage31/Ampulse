@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import ReservationPDFModal from '../modals/ReservationPDFModal';
-import { Reservation, Hotel, OperateurSocial, DocumentTemplate, DocumentVariable } from '../types';
+import { Reservation, Hotel, OperateurSocial, DocumentTemplate, DocumentVariable } from '../../types';
 
 export default function TestPDFGeneration() {
   const [isModalOpen, setIsModalOpen] = useState(false);

@@ -6,7 +6,7 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { ConventionPrix, Hotel, OperateurSocial } from '../types';
+import { ConventionPrix, Hotel, OperateurSocial } from '../../types';
 import { 
   Euro, 
   Percent, 

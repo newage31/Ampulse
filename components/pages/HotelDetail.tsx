@@ -21,7 +21,7 @@ import {
   Euro,
   Star
 } from 'lucide-react';
-import { Hotel, Room } from '../types';
+import { Hotel, Room } from '../../types';
 
 
 

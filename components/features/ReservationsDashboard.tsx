@@ -25,7 +25,7 @@ import {
   XSquare,
   RefreshCw
 } from 'lucide-react';
-import { Reservation, Hotel, OperateurSocial } from '../types';
+import { Reservation, Hotel, OperateurSocial } from '../../types';
 
 interface ReservationsDashboardProps {
   reservations: Reservation[];

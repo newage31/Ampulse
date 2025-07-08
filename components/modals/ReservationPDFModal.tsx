@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Reservation, Hotel, OperateurSocial, DocumentTemplate } from '../types';
+import { Reservation, Hotel, OperateurSocial, DocumentTemplate } from '../../types';
 import { ReservationToPDFMapper, ReservationData } from '../../utils/reservationToPDF';
 import { PDFGenerator, PDFGenerationOptions } from '../../utils/pdfGenerator';
 import { Button } from '../ui/button';
