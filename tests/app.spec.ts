@@ -30,9 +30,7 @@ test.describe('Application Ampulse - Tests fonctionnels', () => {
     await page.getByRole('button', { name: 'Clients' }).click();
     await expect(page.locator('h1:has-text("Gestion des clients")')).toBeVisible();
     
-    // Navigation vers Messagerie
-    await page.getByRole('button', { name: 'Messagerie' }).click();
-    await expect(page.locator('h1:has-text("Messagerie")')).toBeVisible();
+    
     
     // Navigation vers Rapports
     await page.getByRole('button', { name: 'Rapports' }).click();
@@ -70,13 +68,7 @@ test.describe('Application Ampulse - Tests fonctionnels', () => {
     await expect(page.locator('h1:has-text("Gestion des clients")')).toBeVisible();
   });
 
-  test('Test de la page de messagerie', async ({ page }) => {
-    await page.goto('/');
-    await page.getByRole('button', { name: 'Messagerie' }).click();
-    
-    // Vérifier que la page de messagerie est chargée
-    await expect(page.locator('h1:has-text("Messagerie")')).toBeVisible();
-  });
+  
 
   test('Test de la page des rapports', async ({ page }) => {
     await page.goto('/');

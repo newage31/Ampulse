@@ -9,6 +9,8 @@ import ReservationsTable from '../components/features/ReservationsTable';
 import OperateursTable from '../components/features/OperateursTable';
 import HotelDetail from '../components/pages/HotelDetail';
 import OperateurDetail from '../components/pages/OperateurDetail';
+import EditOperateurPage from '../components/pages/EditOperateurPage';
+import AddOperateurPage from '../components/pages/AddOperateurPage';
 import Parametres from '../components/features/Parametres';
 import NotificationSystem from '../components/layout/NotificationSystem';
 import { AddRoomModal, NewReservationModal, EditHotelModal } from '../components/modals/Modals';
@@ -29,11 +31,12 @@ export default function SoliReserveEnhanced() {
   const [selectedHotel, setSelectedHotel] = useState<Hotel | null>(null);
   const [selectedOperateur, setSelectedOperateur] = useState<OperateurSocial | null>(null);
   const [selectedItem, setSelectedItem] = useState<{ type: 'hotel' | 'reservation' | 'operateur'; data: Hotel | Reservation | OperateurSocial } | null>(null);
+  const [isEditingOperateur, setIsEditingOperateur] = useState(false);
+  const [isAddingOperateur, setIsAddingOperateur] = useState(false);
   
   // État pour les fonctionnalités activées/désactivées
   const [features, setFeatures] = useState({
     operateursSociaux: true,
-    messagerie: true,
     statistiques: true,
     notifications: true
   });
@@ -130,7 +133,43 @@ export default function SoliReserveEnhanced() {
   };
 
   const handleEditOperateur = (operateur: OperateurSocial) => {
+    setSelectedOperateur(operateur);
+    setIsEditingOperateur(true);
     addNotification('info', `Modification de l'opérateur: ${operateur.prenom} ${operateur.nom}`);
+  };
+
+  const handleSaveOperateur = (operateurMisAJour: OperateurSocial, conventions: ConventionPrix[]) => {
+    setOperateurs(prev => prev.map(o => o.id === operateurMisAJour.id ? operateurMisAJour : o));
+    setConventions(prev => {
+      // Supprimer les anciennes conventions de cet opérateur
+      const autresConventions = prev.filter(c => c.operateurId !== operateurMisAJour.id);
+      // Ajouter les nouvelles conventions
+      return [...autresConventions, ...conventions];
+    });
+    setIsEditingOperateur(false);
+    addNotification('success', `Opérateur ${operateurMisAJour.prenom} ${operateurMisAJour.nom} mis à jour avec succès !`);
+  };
+
+  const handleCancelEditOperateur = () => {
+    setIsEditingOperateur(false);
+    addNotification('info', 'Modification annulée');
+  };
+
+  const handleAddOperateur = () => {
+    setIsAddingOperateur(true);
+    addNotification('info', 'Ouverture du formulaire d\'ajout d\'opérateur');
+  };
+
+  const handleSaveNewOperateur = (nouvelOperateur: OperateurSocial, conventions: ConventionPrix[]) => {
+    setOperateurs(prev => [...prev, nouvelOperateur]);
+    setConventions(prev => [...prev, ...conventions]);
+    setIsAddingOperateur(false);
+    addNotification('success', `Opérateur ${nouvelOperateur.prenom} ${nouvelOperateur.nom} créé avec succès !`);
+  };
+
+  const handleCancelAddOperateur = () => {
+    setIsAddingOperateur(false);
+    addNotification('info', 'Ajout annulé');
   };
 
   const handleReservationSelect = (reservation: Reservation) => {
@@ -176,7 +215,6 @@ export default function SoliReserveEnhanced() {
   const handleResetSettings = () => {
     const defaultFeatures = {
       operateursSociaux: true,
-      messagerie: true,
       statistiques: true,
       notifications: true
     };
@@ -208,14 +246,13 @@ export default function SoliReserveEnhanced() {
       setActiveTab('dashboard');
       addNotification('info', 'L\'onglet Opérateurs sociaux a été désactivé');
     }
-    if (activeTab === 'messagerie' && !features.messagerie) {
-      setActiveTab('dashboard');
-      addNotification('info', 'L\'onglet Messagerie a été désactivé');
-    }
+
     if (activeTab === 'statistiques' && !features.statistiques) {
       setActiveTab('dashboard');
       addNotification('info', 'L\'onglet Statistiques a été désactivé');
     }
+
+
   }, [features, activeTab, addNotification]);
 
   if (!isClient) {
@@ -265,7 +302,15 @@ export default function SoliReserveEnhanced() {
             />
           )}
           
-          {activeTab === 'operateurs' && features.operateursSociaux && selectedOperateur && (
+          {activeTab === 'operateurs' && features.operateursSociaux && selectedOperateur && isEditingOperateur && (
+            <EditOperateurPage 
+              operateur={selectedOperateur}
+              onSave={handleSaveOperateur}
+              onCancel={handleCancelEditOperateur}
+            />
+          )}
+          
+          {activeTab === 'operateurs' && features.operateursSociaux && selectedOperateur && !isEditingOperateur && (
             <OperateurDetail 
               operateur={selectedOperateur}
               conventions={conventions}
@@ -276,10 +321,18 @@ export default function SoliReserveEnhanced() {
             />
           )}
           
-          {activeTab === 'operateurs' && features.operateursSociaux && !selectedOperateur && (
+          {activeTab === 'operateurs' && features.operateursSociaux && isAddingOperateur && (
+            <AddOperateurPage 
+              onSave={handleSaveNewOperateur}
+              onCancel={handleCancelAddOperateur}
+            />
+          )}
+          
+          {activeTab === 'operateurs' && features.operateursSociaux && !selectedOperateur && !isAddingOperateur && (
             <OperateursTable 
               operateurs={operateurs}
               onOperateurSelect={handleOperateurSelect}
+              onAddOperateur={handleAddOperateur}
             />
           )}
           
@@ -292,12 +345,7 @@ export default function SoliReserveEnhanced() {
             />
           )}
           
-          {activeTab === 'messagerie' && features.messagerie && (
-            <div className="text-center py-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Messagerie</h2>
-              <p className="text-gray-600">Cette section sera développée prochainement.</p>
-            </div>
-          )}
+
           
           {activeTab === 'statistiques' && features.statistiques && (
             <div className="text-center py-12">
@@ -316,6 +364,8 @@ export default function SoliReserveEnhanced() {
               onResetSettings={handleResetSettings}
             />
           )}
+
+          
         </main>
       </div>
 

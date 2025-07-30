@@ -33,6 +33,12 @@ interface TypeChambrePrix {
   prixStandard: number;
   prixConventionne: number;
   reduction: number;
+  tarifsMensuels?: {
+    [mois: string]: {
+      prixParPersonne?: number;
+      prixParChambre?: number;
+    };
+  };
 }
 
 interface ConventionFormData {
@@ -40,6 +46,7 @@ interface ConventionFormData {
   dateFin: string;
   statut: 'active' | 'expiree' | 'suspendue';
   conditions: string;
+  conditionsSpeciales: string;
 }
 
 export default function ConventionEditPage({ convention, hotel, operateur, onBack, onSave }: ConventionEditPageProps) {
@@ -47,7 +54,8 @@ export default function ConventionEditPage({ convention, hotel, operateur, onBac
     dateDebut: convention.dateDebut,
     dateFin: convention.dateFin || '',
     statut: convention.statut as 'active' | 'suspendue' | 'expiree',
-    conditions: convention.conditions || ''
+    conditions: convention.conditions || '',
+    conditionsSpeciales: convention.conditionsSpeciales || ''
   });
 
   const [typesChambres, setTypesChambres] = useState<TypeChambrePrix[]>([
@@ -55,25 +63,29 @@ export default function ConventionEditPage({ convention, hotel, operateur, onBac
       type: 'Simple',
       prixStandard: convention.typeChambre === 'Simple' ? convention.prixStandard : 50,
       prixConventionne: convention.typeChambre === 'Simple' ? convention.prixConventionne : 45,
-      reduction: convention.typeChambre === 'Simple' ? convention.reduction : 10
+      reduction: convention.typeChambre === 'Simple' ? convention.reduction : 10,
+      tarifsMensuels: convention.tarifsMensuels || {}
     },
     {
       type: 'Double',
       prixStandard: convention.typeChambre === 'Double' ? convention.prixStandard : 70,
       prixConventionne: convention.typeChambre === 'Double' ? convention.prixConventionne : 63,
-      reduction: convention.typeChambre === 'Double' ? convention.reduction : 10
+      reduction: convention.typeChambre === 'Double' ? convention.reduction : 10,
+      tarifsMensuels: convention.tarifsMensuels || {}
     },
     {
       type: 'Familiale',
       prixStandard: convention.typeChambre === 'Familiale' ? convention.prixStandard : 90,
       prixConventionne: convention.typeChambre === 'Familiale' ? convention.prixConventionne : 81,
-      reduction: convention.typeChambre === 'Familiale' ? convention.reduction : 10
+      reduction: convention.typeChambre === 'Familiale' ? convention.reduction : 10,
+      tarifsMensuels: convention.tarifsMensuels || {}
     },
     {
       type: 'Adaptée',
       prixStandard: convention.typeChambre === 'Adaptée' ? convention.prixStandard : 80,
       prixConventionne: convention.typeChambre === 'Adaptée' ? convention.prixConventionne : 72,
-      reduction: convention.typeChambre === 'Adaptée' ? convention.reduction : 10
+      reduction: convention.typeChambre === 'Adaptée' ? convention.reduction : 10,
+      tarifsMensuels: convention.tarifsMensuels || {}
     }
   ]);
 
@@ -100,6 +112,37 @@ export default function ConventionEditPage({ convention, hotel, operateur, onBac
     setTypesChambres(newTypes);
   };
 
+  // Gestion des tarifs mensuels
+  const handleTarifMensuelChange = (index: number, mois: string, type: 'prixParPersonne' | 'prixParChambre', valeur: number) => {
+    const newTypes = [...typesChambres];
+    const tarifsMensuels = newTypes[index].tarifsMensuels || {};
+    const tarifsMois = tarifsMensuels[mois] || {};
+    
+    newTypes[index].tarifsMensuels = {
+      ...tarifsMensuels,
+      [mois]: {
+        ...tarifsMois,
+        [type]: valeur
+      }
+    };
+    setTypesChambres(newTypes);
+  };
+
+  const MOIS = [
+    { key: 'janvier', nom: 'Janvier' },
+    { key: 'fevrier', nom: 'Février' },
+    { key: 'mars', nom: 'Mars' },
+    { key: 'avril', nom: 'Avril' },
+    { key: 'mai', nom: 'Mai' },
+    { key: 'juin', nom: 'Juin' },
+    { key: 'juillet', nom: 'Juillet' },
+    { key: 'aout', nom: 'Août' },
+    { key: 'septembre', nom: 'Septembre' },
+    { key: 'octobre', nom: 'Octobre' },
+    { key: 'novembre', nom: 'Novembre' },
+    { key: 'decembre', nom: 'Décembre' }
+  ] as const;
+
   const handleSave = async () => {
     setIsSaving(true);
     
@@ -111,10 +154,12 @@ export default function ConventionEditPage({ convention, hotel, operateur, onBac
       prixStandard: typeChambre.prixStandard,
       prixConventionne: typeChambre.prixConventionne,
       reduction: typeChambre.reduction,
+      tarifsMensuels: typeChambre.tarifsMensuels,
       dateDebut: formData.dateDebut,
       dateFin: formData.dateFin || undefined,
       statut: (formData.statut as 'active' | 'suspendue' | 'expiree'),
-      conditions: formData.conditions || undefined
+      conditions: formData.conditions || undefined,
+      conditionsSpeciales: formData.conditionsSpeciales || undefined
     }));
 
     // Sauvegarder toutes les conventions
@@ -200,7 +245,7 @@ export default function ConventionEditPage({ convention, hotel, operateur, onBac
             </div>
           </div>
           <div>
-            <Label htmlFor="conditions">Conditions spéciales</Label>
+            <Label htmlFor="conditions">Conditions générales</Label>
             <textarea
               id="conditions"
               value={formData.conditions}
@@ -208,6 +253,17 @@ export default function ConventionEditPage({ convention, hotel, operateur, onBac
               placeholder="Ex: Réservation minimum 3 nuits, paiement à l'avance requis..."
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
               rows={3}
+            />
+          </div>
+          <div>
+            <Label htmlFor="conditionsSpeciales">Conditions spéciales (mode tarification)</Label>
+            <textarea
+              id="conditionsSpeciales"
+              value={formData.conditionsSpeciales}
+              onChange={(e) => setFormData({ ...formData, conditionsSpeciales: e.target.value })}
+              placeholder="Ex: Mode par personne - Max 2 personnes, Mode par mois - Min 3 mois..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              rows={2}
             />
           </div>
         </CardContent>
@@ -242,7 +298,42 @@ export default function ConventionEditPage({ convention, hotel, operateur, onBac
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Tarifs mensuels */}
+                <div className="mb-4">
+                  <Label className="text-base font-medium mb-4 block">Tarifs mensuels</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {MOIS.map(({ key, nom }) => (
+                      <Card key={key} className="p-4">
+                        <div className="text-sm font-medium mb-3 text-gray-700">{nom}</div>
+                        <div className="space-y-2">
+                          <div>
+                            <Label className="text-xs">Prix par personne (€)</Label>
+                            <Input
+                              type="number"
+                              value={typeChambre.tarifsMensuels?.[key]?.prixParPersonne || ''}
+                              onChange={(e) => handleTarifMensuelChange(index, key, 'prixParPersonne', parseFloat(e.target.value) || 0)}
+                              placeholder="0"
+                              className="text-sm"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs">Prix par chambre (€)</Label>
+                            <Input
+                              type="number"
+                              value={typeChambre.tarifsMensuels?.[key]?.prixParChambre || ''}
+                              onChange={(e) => handleTarifMensuelChange(index, key, 'prixParChambre', parseFloat(e.target.value) || 0)}
+                              placeholder="0"
+                              className="text-sm"
+                            />
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Prix de base */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                   <div>
                     <Label htmlFor={`prixStandard-${index}`}>Prix standard (€)</Label>
                     <Input
@@ -282,7 +373,8 @@ export default function ConventionEditPage({ convention, hotel, operateur, onBac
                     </div>
                   </div>
                 </div>
-                
+
+
                 {typeChambre.reduction > 0 && (
                   <div className="mt-3 bg-green-50 p-3 rounded-lg">
                     <div className="flex items-center text-green-800">

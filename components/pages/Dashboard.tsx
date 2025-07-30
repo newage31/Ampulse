@@ -26,7 +26,7 @@ interface DashboardProps {
   onActionClick: (action: string) => void;
   features?: {
     operateursSociaux: boolean;
-    messagerie: boolean;
+  
     statistiques: boolean;
     notifications: boolean;
   };

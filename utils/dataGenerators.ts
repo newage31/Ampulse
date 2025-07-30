@@ -13,7 +13,7 @@ export const roleDefinitions: RoleDefinition[] = [
       { module: 'chambres', actions: ['read', 'write', 'delete', 'export'] },
       { module: 'gestion', actions: ['read', 'write', 'delete', 'export'] },
       { module: 'operateurs', actions: ['read', 'write', 'delete', 'export'] },
-      { module: 'messagerie', actions: ['read', 'write', 'delete', 'export'] },
+      
       { module: 'parametres', actions: ['read', 'write', 'delete', 'export'] },
       { module: 'utilisateurs', actions: ['read', 'write', 'delete', 'export'] },
       { module: 'comptabilite', actions: ['read', 'write', 'delete', 'export'] }
@@ -30,7 +30,7 @@ export const roleDefinitions: RoleDefinition[] = [
       { module: 'chambres', actions: ['read', 'write'] },
       { module: 'gestion', actions: ['read', 'write'] },
       { module: 'operateurs', actions: ['read', 'write'] },
-      { module: 'messagerie', actions: ['read', 'write'] },
+      
       { module: 'comptabilite', actions: ['read', 'write'] }
     ]
   },
@@ -274,6 +274,8 @@ export const generateConventionsPrix = (operateurs: OperateurSocial[], hotels: H
     "Disponible uniquement en semaine",
     "Réservation 48h à l'avance"
   ];
+  
+  const mois = ['janvier', 'fevrier', 'mars', 'avril', 'mai', 'juin', 'juillet', 'aout', 'septembre', 'octobre', 'novembre', 'decembre'];
 
   const conventions: ConventionPrix[] = [];
   let id = 1;
@@ -300,6 +302,21 @@ export const generateConventionsPrix = (operateurs: OperateurSocial[], hotels: H
         const reduction = Math.floor(Math.random() * 20) + 5; // 5-25% de réduction
         const prixConventionne = Math.round(prixStandard * (1 - reduction / 100));
 
+        // Générer des tarifs mensuels pour certains mois
+        const tarifsMensuels: any = {};
+        const nbMoisAvecTarifs = Math.floor(Math.random() * 8) + 4; // 4-12 mois avec tarifs
+        const moisSelectionnes = mois.sort(() => 0.5 - Math.random()).slice(0, nbMoisAvecTarifs);
+        
+        moisSelectionnes.forEach(mois => {
+          const prixParPersonne = Math.round(prixConventionne * (0.7 + Math.random() * 0.4)); // ±30% variation
+          const prixParChambre = Math.round(prixConventionne * (0.8 + Math.random() * 0.4)); // ±20% variation
+          
+          tarifsMensuels[mois] = {
+            prixParPersonne: Math.random() > 0.3 ? prixParPersonne : undefined,
+            prixParChambre: Math.random() > 0.3 ? prixParChambre : undefined
+          };
+        });
+
         const dateDebut = new Date();
         dateDebut.setDate(dateDebut.getDate() - Math.floor(Math.random() * 365));
 
@@ -320,7 +337,10 @@ export const generateConventionsPrix = (operateurs: OperateurSocial[], hotels: H
           dateDebut: dateDebut.toLocaleDateString('fr-FR'),
           dateFin: statut === 'active' ? dateFin.toLocaleDateString('fr-FR') : undefined,
           statut: statut as 'active' | 'expiree' | 'suspendue',
-          conditions: Math.random() > 0.5 ? conditions[Math.floor(Math.random() * conditions.length)] : undefined
+          conditions: Math.random() > 0.5 ? conditions[Math.floor(Math.random() * conditions.length)] : undefined,
+          conditionsSpeciales: Object.keys(tarifsMensuels).length > 0 ? 
+            `Tarification personnalisée sur ${Object.keys(tarifsMensuels).length} mois` : undefined,
+          tarifsMensuels: Object.keys(tarifsMensuels).length > 0 ? tarifsMensuels : undefined
         });
       });
     });

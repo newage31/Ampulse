@@ -199,19 +199,73 @@ export interface OperateurSocial {
   notes?: string;
 }
 
+// Interface pour les tarifs mensuels
+export interface TarifsMensuels {
+  janvier?: {
+    prixParPersonne?: number;
+    prixParChambre?: number;
+  };
+  fevrier?: {
+    prixParPersonne?: number;
+    prixParChambre?: number;
+  };
+  mars?: {
+    prixParPersonne?: number;
+    prixParChambre?: number;
+  };
+  avril?: {
+    prixParPersonne?: number;
+    prixParChambre?: number;
+  };
+  mai?: {
+    prixParPersonne?: number;
+    prixParChambre?: number;
+  };
+  juin?: {
+    prixParPersonne?: number;
+    prixParChambre?: number;
+  };
+  juillet?: {
+    prixParPersonne?: number;
+    prixParChambre?: number;
+  };
+  aout?: {
+    prixParPersonne?: number;
+    prixParChambre?: number;
+  };
+  septembre?: {
+    prixParPersonne?: number;
+    prixParChambre?: number;
+  };
+  octobre?: {
+    prixParPersonne?: number;
+    prixParChambre?: number;
+  };
+  novembre?: {
+    prixParPersonne?: number;
+    prixParChambre?: number;
+  };
+  decembre?: {
+    prixParPersonne?: number;
+    prixParChambre?: number;
+  };
+}
+
 export interface ConventionPrix {
   id: number;
   operateurId: number;
   hotelId: number;
   hotelNom: string;
   typeChambre: string;
-  prixConventionne: number;
   prixStandard: number;
+  prixConventionne: number;
   reduction: number;
   dateDebut: string;
   dateFin?: string;
   statut: 'active' | 'expiree' | 'suspendue';
   conditions?: string;
+  conditionsSpeciales?: string;
+  tarifsMensuels?: TarifsMensuels;
 }
 
 export interface ProcessusReservation {

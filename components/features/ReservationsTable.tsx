@@ -96,28 +96,33 @@ export default function ReservationsTable({ reservations, processus, hotels = []
   };
 
   const filteredReservations = reservations.filter(reservation => {
+    // Utiliser les données de détails si disponibles, sinon des valeurs par défaut
+    const usagerName = reservation.usagerDetails ? `${reservation.usagerDetails.nom} ${reservation.usagerDetails.prenom}` : 'Usager non spécifié';
+    const hotelName = reservation.hotelDetails ? reservation.hotelDetails.nom : 'Hôtel non spécifié';
+    const prescripteur = reservation.prescripteur || 'Non spécifié';
+    
     const matchesSearch = 
-      reservation.usager.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      reservation.hotel.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      reservation.prescripteur.toLowerCase().includes(searchTerm.toLowerCase());
+      usagerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      hotelName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      prescripteur.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || reservation.statut === statusFilter;
     
     const matchesType = typeFilter === 'all' || (() => {
-      const prescripteur = reservation.prescripteur.toLowerCase();
-      if (typeFilter === 'entreprise') return prescripteur.includes('entreprise') || prescripteur.includes('sarl') || prescripteur.includes('sas');
-      if (typeFilter === 'association') return prescripteur.includes('association') || prescripteur.includes('asso');
-      if (typeFilter === 'institution') return prescripteur.includes('samusocial') || prescripteur.includes('social');
-      if (typeFilter === 'particulier') return !prescripteur.includes('entreprise') && !prescripteur.includes('association') && !prescripteur.includes('samusocial');
+      const prescripteurLower = prescripteur.toLowerCase();
+      if (typeFilter === 'entreprise') return prescripteurLower.includes('entreprise') || prescripteurLower.includes('sarl') || prescripteurLower.includes('sas');
+      if (typeFilter === 'association') return prescripteurLower.includes('association') || prescripteurLower.includes('asso');
+      if (typeFilter === 'institution') return prescripteurLower.includes('samusocial') || prescripteurLower.includes('social');
+      if (typeFilter === 'particulier') return !prescripteurLower.includes('entreprise') && !prescripteurLower.includes('association') && !prescripteurLower.includes('samusocial');
       return true;
     })();
     
-    const matchesHotel = hotelFilter === 'all' || reservation.hotel === hotelFilter;
+    const matchesHotel = hotelFilter === 'all' || hotelName === hotelFilter;
     
     const matchesDate = dateFilter === 'all' || (() => {
       const today = new Date();
-      const arrivalDate = new Date(reservation.dateArrivee);
-      const departureDate = new Date(reservation.dateDepart);
+      const arrivalDate = new Date(reservation.date_arrivee);
+      const departureDate = new Date(reservation.date_depart);
       
       if (dateFilter === 'today') return arrivalDate.toDateString() === today.toDateString();
       if (dateFilter === 'week') {
@@ -159,14 +164,18 @@ export default function ReservationsTable({ reservations, processus, hotels = []
       }
 
       // Préparer les variables pour le template
+      const usagerName = reservation.usagerDetails ? `${reservation.usagerDetails.nom} ${reservation.usagerDetails.prenom}` : 'Usager non spécifié';
+      const hotelName = reservation.hotelDetails ? reservation.hotelDetails.nom : 'Hôtel non spécifié';
+      const chambreNum = reservation.chambreDetails ? reservation.chambreDetails.numero : 'Non spécifiée';
+      
       const variables = {
-        usager: reservation.usager,
-        hotel: reservation.hotel,
-        chambre: reservation.chambre,
-        dateArrivee: new Date(reservation.dateArrivee).toLocaleDateString('fr-FR'),
-        dateDepart: new Date(reservation.dateDepart).toLocaleDateString('fr-FR'),
+        usager: usagerName,
+        hotel: hotelName,
+        chambre: chambreNum,
+        dateArrivee: new Date(reservation.date_arrivee).toLocaleDateString('fr-FR'),
+        dateDepart: new Date(reservation.date_depart).toLocaleDateString('fr-FR'),
         prix: reservation.prix.toString(),
-        prescripteur: reservation.prescripteur,
+        prescripteur: reservation.prescripteur || 'Non spécifié',
         conditions: 'Conditions standard'
       };
 
@@ -375,25 +384,31 @@ export default function ReservationsTable({ reservations, processus, hotels = []
                       <td className="py-4 px-4">
                         <div className="flex items-center">
                           <User className="h-4 w-4 mr-2 text-gray-400" />
-                          <div className="font-medium text-gray-900">{reservation.usager}</div>
+                          <div className="font-medium text-gray-900">
+                            {reservation.usagerDetails ? `${reservation.usagerDetails.nom} ${reservation.usagerDetails.prenom}` : 'Usager non spécifié'}
+                          </div>
                         </div>
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex items-center">
                           <Building2 className="h-4 w-4 mr-2 text-gray-400" />
-                          <span className="text-gray-700">{reservation.hotel}</span>
+                          <span className="text-gray-700">
+                            {reservation.hotelDetails ? reservation.hotelDetails.nom : 'Hôtel non spécifié'}
+                          </span>
                         </div>
                       </td>
                       <td className="py-4 px-4">
-                        <span className="text-gray-700">{reservation.chambre}</span>
+                        <span className="text-gray-700">
+                          {reservation.chambreDetails ? reservation.chambreDetails.numero : 'Non spécifiée'}
+                        </span>
                       </td>
                       <td className="py-4 px-4">
                         <div className="text-sm">
                           <div className="text-gray-900">
-                            {new Date(reservation.dateArrivee).toLocaleDateString('fr-FR')}
+                            {new Date(reservation.date_arrivee).toLocaleDateString('fr-FR')}
                           </div>
                           <div className="text-gray-500">
-                            {new Date(reservation.dateDepart).toLocaleDateString('fr-FR')}
+                            {new Date(reservation.date_depart).toLocaleDateString('fr-FR')}
                           </div>
                           <div className="text-xs text-gray-400">
                             {reservation.duree} jour(s)
@@ -401,7 +416,7 @@ export default function ReservationsTable({ reservations, processus, hotels = []
                         </div>
                       </td>
                       <td className="py-4 px-4">
-                        <span className="text-gray-700">{reservation.prescripteur}</span>
+                        <span className="text-gray-700">{reservation.prescripteur || 'Non spécifié'}</span>
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex items-center">

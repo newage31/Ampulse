@@ -53,7 +53,7 @@ Tester toutes les fonctionnalités de l'interface de gestion des rôles et permi
 #### 2.2 Matrice des Permissions
 1. **Vérifier la structure de la matrice**
    - ✅ **Attendu:** Tableau avec 10 lignes (modules) et 6 colonnes (actions)
-   - **Modules attendus:** Dashboard, Réservations, Chambres, Gestion, Opérateurs, Messagerie, Paramètres, Utilisateurs, Comptabilité, Rapports
+   - **Modules attendus:** Dashboard, Réservations, Chambres, Gestion, Opérateurs, Paramètres, Utilisateurs, Comptabilité, Rapports
    - **Actions attendues:** 👁️ Lecture, ✏️ Écriture, 🗑️ Suppression, 📋 Export, ➕ Import, ⚙️ Administration
 
 2. **Vérifier les permissions de l'Admin**

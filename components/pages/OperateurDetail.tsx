@@ -299,6 +299,7 @@ export default function OperateurDetail({ operateur, conventions, hotels, onBack
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Établissement</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Type de chambre</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-700">Tarifs mensuels</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Prix standard</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Prix conventionné</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-700">Réduction</th>
@@ -316,6 +317,25 @@ export default function OperateurDetail({ operateur, conventions, hotels, onBack
                     </td>
                     <td className="py-4 px-4">
                       <div className="text-sm text-gray-900">{convention.typeChambre}</div>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="text-sm">
+                        {convention.tarifsMensuels ? (
+                          <div className="space-y-1">
+                            <div className="text-xs text-gray-600">Tarifs personnalisés</div>
+                            {Object.entries(convention.tarifsMensuels).slice(0, 3).map(([mois, tarifs]) => (
+                              <div key={mois} className="text-xs text-gray-500">
+                                {mois}: {tarifs.prixParPersonne ? `${tarifs.prixParPersonne}€/pers` : ''} {tarifs.prixParChambre ? `${tarifs.prixParChambre}€/ch` : ''}
+                              </div>
+                            ))}
+                            {Object.keys(convention.tarifsMensuels).length > 3 && (
+                              <div className="text-xs text-blue-600">+{Object.keys(convention.tarifsMensuels).length - 3} autres mois</div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="text-xs text-gray-400">Tarification standard</div>
+                        )}
+                      </div>
                     </td>
                     <td className="py-4 px-4">
                       <div className="flex items-center text-sm text-gray-600">
@@ -350,7 +370,12 @@ export default function OperateurDetail({ operateur, conventions, hotels, onBack
                     </td>
                     <td className="py-4 px-4">
                       <div className="text-sm text-gray-600 max-w-xs">
-                        {convention.conditions ? (
+                        {convention.conditionsSpeciales ? (
+                          <div className="flex items-center">
+                            <AlertTriangle className="h-3 w-3 mr-1 text-blue-500" />
+                            {convention.conditionsSpeciales}
+                          </div>
+                        ) : convention.conditions ? (
                           <div className="flex items-center">
                             <AlertTriangle className="h-3 w-3 mr-1 text-yellow-500" />
                             {convention.conditions}

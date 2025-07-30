@@ -8,10 +8,21 @@ import { Label } from '../ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Alert, AlertDescription } from '../ui/alert';
 import { Textarea } from '../ui/textarea';
-import { CheckCircle, AlertCircle, Plus, Trash2, User, Building, Heart, Calculator } from 'lucide-react';
+import { CheckCircle, AlertCircle, Plus, Trash2, User, Building, Heart, Calculator, Euro, Users, Calendar } from 'lucide-react';
+import { ConventionPrix, TarifsMensuels } from '../../types';
 
 interface AddClientPageProps {
   onSuccess?: () => void;
+}
+
+interface ConventionPrixForm {
+  hotelId: number;
+  typeChambre: string;
+  prixConventionne: number;
+  prixStandard: number;
+  reduction: number;
+  conditionsSpeciales?: string;
+  tarifsMensuels?: TarifsMensuels;
 }
 
 // Types et constantes
@@ -68,11 +79,16 @@ interface TarificationChambre {
   reduction: number;
 }
 
+
+
 const AddClientPage: React.FC<AddClientPageProps> = ({ onSuccess }) => {
   const [activeTab, setActiveTab] = useState('general');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  // État pour le filtrage des conventions par type de chambre
+  const [filtreTypeChambre, setFiltreTypeChambre] = useState<string>('tous');
 
   // Données du formulaire
   const [formData, setFormData] = useState({
@@ -105,6 +121,120 @@ const AddClientPage: React.FC<AddClientPageProps> = ({ onSuccess }) => {
       reduction: 0
     }))
   );
+
+  const [conventionsPrix, setConventionsPrix] = useState<ConventionPrixForm[]>([]);
+
+  // Constante pour les mois
+  const MOIS = [
+    { key: 'janvier', nom: 'Janvier' },
+    { key: 'fevrier', nom: 'Février' },
+    { key: 'mars', nom: 'Mars' },
+    { key: 'avril', nom: 'Avril' },
+    { key: 'mai', nom: 'Mai' },
+    { key: 'juin', nom: 'Juin' },
+    { key: 'juillet', nom: 'Juillet' },
+    { key: 'aout', nom: 'Août' },
+    { key: 'septembre', nom: 'Septembre' },
+    { key: 'octobre', nom: 'Octobre' },
+    { key: 'novembre', nom: 'Novembre' },
+    { key: 'decembre', nom: 'Décembre' }
+  ] as const;
+
+  // Gestion des conventions de prix dynamiques
+  const ajouterConventionPrix = () => {
+    const nouvelleConvention: ConventionPrixForm = {
+      hotelId: 1, // À remplacer par la sélection d'hôtel
+      typeChambre: 'standard',
+      prixConventionne: 45,
+      prixStandard: 50,
+      reduction: 10,
+      conditionsSpeciales: '',
+      tarifsMensuels: {}
+    };
+    setConventionsPrix(prev => [...prev, nouvelleConvention]);
+    
+    // Réinitialiser le filtre pour afficher toutes les conventions après l'ajout
+    setFiltreTypeChambre('tous');
+  };
+
+  const modifierConventionPrix = (index: number, champ: string, valeur: any) => {
+    setConventionsPrix(prev => {
+      const nouvellesConventions = prev.map((conv, i) =>
+        i === index ? { ...conv, [champ]: valeur } : conv
+      );
+      
+      // Si on modifie le type de chambre et que le filtre actuel ne correspond plus, le réinitialiser
+      if (champ === 'typeChambre' && filtreTypeChambre !== 'tous' && filtreTypeChambre !== valeur) {
+        const ancienType = prev[index].typeChambre;
+        const plusDAncienType = !nouvellesConventions.some(c => c.typeChambre === ancienType);
+        
+        if (plusDAncienType) {
+          setFiltreTypeChambre('tous');
+        }
+      }
+      
+      return nouvellesConventions;
+    });
+  };
+
+  const supprimerConventionPrix = (index: number) => {
+    setConventionsPrix(prev => {
+      const nouvellesConventions = prev.filter((_, i) => i !== index);
+      
+      // Si le filtre actuel ne correspond plus à aucune convention, le réinitialiser
+      if (filtreTypeChambre !== 'tous' && !nouvellesConventions.some(c => c.typeChambre === filtreTypeChambre)) {
+        setFiltreTypeChambre('tous');
+      }
+      
+      return nouvellesConventions;
+    });
+  };
+
+  // Gestion des tarifs mensuels
+  const modifierTarifMensuel = (conventionIndex: number, mois: string, type: 'prixParPersonne' | 'prixParChambre', valeur: number) => {
+    setConventionsPrix(prev => prev.map((convention, index) => {
+      if (index === conventionIndex) {
+        const tarifsMensuels = convention.tarifsMensuels || {};
+        const tarifsMois = tarifsMensuels[mois as keyof TarifsMensuels] || {};
+
+        return {
+          ...convention,
+          tarifsMensuels: {
+            ...tarifsMensuels,
+            [mois]: {
+              ...tarifsMois,
+              [type]: valeur
+            }
+          }
+        };
+      }
+      return convention;
+    }));
+  };
+
+  // Fonction pour filtrer et trier les conventions par type de chambre
+  const conventionsFiltrees = conventionsPrix
+    .filter(convention => {
+      if (filtreTypeChambre === 'tous') return true;
+      return convention.typeChambre === filtreTypeChambre;
+    })
+    .sort((a, b) => {
+      // Ordre de priorité des types de chambres
+      const ordreTypes = ['standard', 'confort', 'superieure', 'suite', 'adaptee'];
+      const indexA = ordreTypes.indexOf(a.typeChambre);
+      const indexB = ordreTypes.indexOf(b.typeChambre);
+      
+      if (indexA !== -1 && indexB !== -1) {
+        return indexA - indexB;
+      }
+      if (indexA !== -1) return -1;
+      if (indexB !== -1) return 1;
+      
+      return a.typeChambre.localeCompare(b.typeChambre);
+    });
+
+  // Fonction pour obtenir les types de chambres uniques
+  const typesChambresUniques = Array.from(new Set(conventionsPrix.map(c => c.typeChambre)));
 
   // Gestion des référents
   const ajouterReferent = () => {
@@ -153,6 +283,8 @@ const AddClientPage: React.FC<AddClientPageProps> = ({ onSuccess }) => {
       return tarif;
     }));
   };
+
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -531,65 +663,309 @@ const AddClientPage: React.FC<AddClientPageProps> = ({ onSuccess }) => {
                 ))}
               </TabsContent>
 
-              {/* Onglet Tarification */}
-              <TabsContent value="tarification" className="space-y-6">
-                <div className="flex items-center space-x-2 mb-4">
-                  <Calculator className="h-5 w-5 text-blue-600" />
-                  <h3 className="text-lg font-semibold">Conventions tarifaires</h3>
-                </div>
+                             {/* Onglet Tarification */}
+               <TabsContent value="tarification" className="space-y-6">
+                 <div className="flex items-center space-x-2 mb-4">
+                   <Calculator className="h-5 w-5 text-blue-600" />
+                   <h3 className="text-lg font-semibold">Conventions tarifaires</h3>
+                 </div>
 
-                <div className="grid gap-4">
-                  {CATEGORIES_CHAMBRES.map(categorie => {
-                    const tarif = tarification.find(t => t.categorieId === categorie.id);
-                    return (
-                      <Card key={categorie.id}>
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h4 className="font-medium">{categorie.nom}</h4>
-                              <p className="text-sm text-gray-600">Prix public : {categorie.prixBase}€/nuit</p>
-                            </div>
-                            <div className="flex items-center space-x-4">
-                              <div>
-                                <Label>Prix négocié (€)</Label>
-                                <Input
-                                  type="number"
-                                  value={tarif?.prixNegocie || categorie.prixBase}
-                                  onChange={(e) => modifierTarification(categorie.id, parseFloat(e.target.value) || 0)}
-                                  className="w-24"
-                                />
-                              </div>
-                              <div className={`text-center ${tarif && tarif.reduction > 0 ? 'text-green-600' : 'text-gray-500'}`}>
-                                <div className="text-sm font-medium">
-                                  {tarif?.reduction || 0}% de réduction
-                                </div>
-                                <div className="text-xs">
-                                  {tarif ? (categorie.prixBase - tarif.prixNegocie).toFixed(0) : 0}€ économisés/nuit
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
+                 {/* Onglets principaux pour les types de tarification */}
+                 <Tabs defaultValue="pax" className="w-full">
+                   <TabsList className="grid w-full grid-cols-2">
+                     <TabsTrigger value="pax">Prix par personne ou PAX</TabsTrigger>
+                     <TabsTrigger value="chambres">Prix par typologie de chambre</TabsTrigger>
+                   </TabsList>
 
-                {economieAnnuelle > 0 && (
-                  <Card className="bg-green-50 border-green-200">
-                    <CardContent className="p-4">
-                      <div className="text-center">
-                        <h4 className="text-lg font-semibold text-green-800">
-                          Économies estimées : {economieAnnuelle.toFixed(0)}€/an
-                        </h4>
-                        <p className="text-sm text-green-600">
-                          (basé sur 50 nuits par catégorie et par an)
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </TabsContent>
+                   {/* Onglet Prix par personne ou PAX */}
+                   <TabsContent value="pax" className="space-y-6">
+                     <div className="flex justify-between items-center">
+                       <div>
+                         <h3 className="text-lg font-semibold">Tarifs par personne (PAX)</h3>
+                         <p className="text-sm text-gray-600">Définissez les tarifs par personne pour chaque mois</p>
+                       </div>
+                       <Button type="button" onClick={ajouterConventionPrix} className="flex items-center space-x-2">
+                         <Plus className="h-4 w-4" />
+                         <span>Ajouter un tarif PAX</span>
+                       </Button>
+                     </div>
+
+                     {conventionsPrix.length === 0 && (
+                       <Card className="p-8 text-center">
+                         <Calculator className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                         <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun tarif PAX</h3>
+                         <p className="text-gray-600">Ajoutez des tarifs par personne pour personnaliser les prix</p>
+                       </Card>
+                     )}
+
+                     {conventionsPrix.map((convention, index) => (
+                       <Card key={index}>
+                         <CardHeader className="flex flex-row items-center justify-between">
+                           <CardTitle className="text-base">Tarif PAX #{index + 1}</CardTitle>
+                           <Button
+                             type="button"
+                             variant="outline"
+                             size="sm"
+                             onClick={() => supprimerConventionPrix(index)}
+                           >
+                             <Trash2 className="h-4 w-4" />
+                           </Button>
+                         </CardHeader>
+                         <CardContent className="space-y-6">
+                           {/* Informations de base */}
+                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                             <div>
+                               <Label>Prix standard par personne (€)</Label>
+                               <Input
+                                 type="number"
+                                 value={convention.prixStandard}
+                                 onChange={(e) => modifierConventionPrix(index, 'prixStandard', parseFloat(e.target.value) || 0)}
+                               />
+                             </div>
+                             <div>
+                               <Label>Prix conventionné par personne (€)</Label>
+                               <Input
+                                 type="number"
+                                 value={convention.prixConventionne}
+                                 onChange={(e) => modifierConventionPrix(index, 'prixConventionne', parseFloat(e.target.value) || 0)}
+                               />
+                             </div>
+                           </div>
+
+                           {/* Tarifs mensuels pour PAX */}
+                           <div>
+                             <Label className="text-base font-medium mb-4 block">Tarifs mensuels par personne</Label>
+                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                               {MOIS.map(({ key, nom }) => (
+                                 <Card key={key} className="p-4">
+                                   <div className="text-sm font-medium mb-3 text-gray-700">{nom}</div>
+                                   <div className="space-y-2">
+                                     <div>
+                                       <Label className="text-xs">Prix par personne (€)</Label>
+                                       <Input
+                                         type="number"
+                                         value={convention.tarifsMensuels?.[key]?.prixParPersonne || ''}
+                                         onChange={(e) => modifierTarifMensuel(index, key, 'prixParPersonne', parseFloat(e.target.value) || 0)}
+                                         placeholder="0"
+                                         className="text-sm"
+                                       />
+                                     </div>
+                                   </div>
+                                 </Card>
+                               ))}
+                             </div>
+                           </div>
+
+                           {/* Conditions spéciales */}
+                           <div>
+                             <Label>Conditions spéciales</Label>
+                             <Textarea
+                               value={convention.conditionsSpeciales || ''}
+                               onChange={(e) => modifierConventionPrix(index, 'conditionsSpeciales', e.target.value)}
+                               rows={2}
+                               placeholder="Conditions particulières pour les tarifs PAX..."
+                             />
+                           </div>
+
+                           {/* Résumé de la réduction */}
+                           <div className="text-center p-3 bg-blue-50 rounded-md">
+                             <div className="text-sm font-medium text-blue-800">
+                               Réduction : {convention.reduction}%
+                             </div>
+                             <div className="text-xs text-blue-600">
+                               Économie : {(convention.prixStandard - convention.prixConventionne).toFixed(0)}€ par personne
+                             </div>
+                           </div>
+                         </CardContent>
+                       </Card>
+                     ))}
+                   </TabsContent>
+
+                   {/* Onglet Prix par typologie de chambre */}
+                   <TabsContent value="chambres" className="space-y-6">
+                     <div className="flex justify-between items-center">
+                       <div>
+                         <h3 className="text-lg font-semibold">Tarifs par typologie de chambre</h3>
+                         <p className="text-sm text-gray-600">Définissez les tarifs par type de chambre pour chaque mois</p>
+                       </div>
+                       <Button type="button" onClick={ajouterConventionPrix} className="flex items-center space-x-2">
+                         <Plus className="h-4 w-4" />
+                         <span>Ajouter un tarif chambre</span>
+                       </Button>
+                     </div>
+
+                     {/* Interface de filtrage */}
+                     {conventionsPrix.length > 0 && (
+                       <Card className="p-4 bg-gray-50">
+                         <div className="flex items-center justify-between">
+                           <div className="flex items-center space-x-4">
+                             <div className="flex items-center space-x-2">
+                               <Building className="h-4 w-4 text-blue-600" />
+                               <Label className="text-sm font-medium text-gray-700">Filtrer par type de chambre :</Label>
+                             </div>
+                             <select
+                               value={filtreTypeChambre}
+                               onChange={(e) => setFiltreTypeChambre(e.target.value)}
+                               className="p-2 border border-gray-300 rounded-md text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                             >
+                               <option value="tous">🏨 Tous les types</option>
+                               {typesChambresUniques.map(type => (
+                                 <option key={type} value={type}>
+                                   {type === 'standard' && '🏠 Standard'}
+                                   {type === 'confort' && '🛏️ Confort'}
+                                   {type === 'superieure' && '⭐ Supérieure'}
+                                   {type === 'suite' && '👑 Suite'}
+                                   {type === 'adaptee' && '♿ Adaptée PMR'}
+                                   {!['standard', 'confort', 'superieure', 'suite', 'adaptee'].includes(type) && `🏢 ${type.charAt(0).toUpperCase() + type.slice(1)}`}
+                                 </option>
+                               ))}
+                             </select>
+                           </div>
+                           <div className="flex items-center space-x-2 text-sm text-gray-600">
+                             <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">
+                               {conventionsFiltrees.length} convention{conventionsFiltrees.length > 1 ? 's' : ''}
+                             </span>
+                             {filtreTypeChambre !== 'tous' && (
+                               <Button
+                                 type="button"
+                                 variant="outline"
+                                 size="sm"
+                                 onClick={() => setFiltreTypeChambre('tous')}
+                                 className="text-xs"
+                               >
+                                 Effacer le filtre
+                               </Button>
+                             )}
+                           </div>
+                         </div>
+                       </Card>
+                     )}
+
+                     {conventionsFiltrees.length === 0 && (
+                       <Card className="p-8 text-center">
+                         <Calculator className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                         <h3 className="text-lg font-medium text-gray-900 mb-2">
+                           {conventionsPrix.length === 0 ? 'Aucun tarif chambre' : 'Aucun tarif pour ce type de chambre'}
+                         </h3>
+                         <p className="text-gray-600">
+                           {conventionsPrix.length === 0 
+                             ? 'Ajoutez des tarifs par type de chambre pour personnaliser les prix'
+                             : 'Aucune convention ne correspond au filtre sélectionné'
+                           }
+                         </p>
+                       </Card>
+                     )}
+
+                     {conventionsFiltrees.map((convention, index) => (
+                       <Card key={index}>
+                         <CardHeader className="flex flex-row items-center justify-between">
+                           <div className="flex items-center space-x-3">
+                             <CardTitle className="text-base">Tarif chambre #{index + 1}</CardTitle>
+                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                               convention.typeChambre === 'standard' ? 'bg-blue-100 text-blue-800' :
+                               convention.typeChambre === 'confort' ? 'bg-green-100 text-green-800' :
+                               convention.typeChambre === 'superieure' ? 'bg-yellow-100 text-yellow-800' :
+                               convention.typeChambre === 'suite' ? 'bg-purple-100 text-purple-800' :
+                               convention.typeChambre === 'adaptee' ? 'bg-orange-100 text-orange-800' :
+                               'bg-gray-100 text-gray-800'
+                             }`}>
+                               {convention.typeChambre.charAt(0).toUpperCase() + convention.typeChambre.slice(1)}
+                             </span>
+                           </div>
+                           <Button
+                             type="button"
+                             variant="outline"
+                             size="sm"
+                             onClick={() => supprimerConventionPrix(index)}
+                           >
+                             <Trash2 className="h-4 w-4" />
+                           </Button>
+                         </CardHeader>
+                         <CardContent className="space-y-6">
+                           {/* Informations de base */}
+                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                             <div>
+                               <Label>Type de chambre</Label>
+                               <select
+                                 value={convention.typeChambre}
+                                 onChange={(e) => modifierConventionPrix(index, 'typeChambre', e.target.value)}
+                                 className="w-full p-2 border border-gray-300 rounded-md"
+                               >
+                                 <option value="standard">Standard</option>
+                                 <option value="confort">Confort</option>
+                                 <option value="superieure">Supérieure</option>
+                                 <option value="suite">Suite</option>
+                                 <option value="adaptee">Adaptée PMR</option>
+                               </select>
+                             </div>
+                             <div>
+                               <Label>Prix standard par chambre (€)</Label>
+                               <Input
+                                 type="number"
+                                 value={convention.prixStandard}
+                                 onChange={(e) => modifierConventionPrix(index, 'prixStandard', parseFloat(e.target.value) || 0)}
+                               />
+                             </div>
+                             <div>
+                               <Label>Prix conventionné par chambre (€)</Label>
+                               <Input
+                                 type="number"
+                                 value={convention.prixConventionne}
+                                 onChange={(e) => modifierConventionPrix(index, 'prixConventionne', parseFloat(e.target.value) || 0)}
+                               />
+                             </div>
+                           </div>
+
+                           {/* Tarifs mensuels pour chambres */}
+                           <div>
+                             <Label className="text-base font-medium mb-4 block">Tarifs mensuels par chambre</Label>
+                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                               {MOIS.map(({ key, nom }) => (
+                                 <Card key={key} className="p-4">
+                                   <div className="text-sm font-medium mb-3 text-gray-700">{nom}</div>
+                                   <div className="space-y-2">
+                                     <div>
+                                       <Label className="text-xs">Prix par chambre (€)</Label>
+                                       <Input
+                                         type="number"
+                                         value={convention.tarifsMensuels?.[key]?.prixParChambre || ''}
+                                         onChange={(e) => modifierTarifMensuel(index, key, 'prixParChambre', parseFloat(e.target.value) || 0)}
+                                         placeholder="0"
+                                         className="text-sm"
+                                       />
+                                     </div>
+                                   </div>
+                                 </Card>
+                               ))}
+                             </div>
+                           </div>
+
+                           {/* Conditions spéciales */}
+                           <div>
+                             <Label>Conditions spéciales</Label>
+                             <Textarea
+                               value={convention.conditionsSpeciales || ''}
+                               onChange={(e) => modifierConventionPrix(index, 'conditionsSpeciales', e.target.value)}
+                               rows={2}
+                               placeholder="Conditions particulières pour les tarifs chambre..."
+                             />
+                           </div>
+
+                           {/* Résumé de la réduction */}
+                           <div className="text-center p-3 bg-blue-50 rounded-md">
+                             <div className="text-sm font-medium text-blue-800">
+                               Réduction : {convention.reduction}%
+                             </div>
+                             <div className="text-xs text-blue-600">
+                               Économie : {(convention.prixStandard - convention.prixConventionne).toFixed(0)}€ par chambre
+                             </div>
+                           </div>
+                         </CardContent>
+                       </Card>
+                     ))}
+                   </TabsContent>
+                 </Tabs>
+               </TabsContent>
             </Tabs>
 
             {/* Notes générales */}

@@ -201,11 +201,7 @@ export default function ReservationsPage({
 
       const { data, error } = await supabase
         .from('reservations')
-        .select(`
-          *,
-          hotels!reservations_hotel_id_fkey (nom, adresse, ville),
-          operateurs_sociaux!reservations_operateur_id_fkey (nom, prenom, type_organisme)
-        `)
+        .select('*')
         .order('date_arrivee', { ascending: false });
 
       if (error) {
@@ -219,27 +215,44 @@ export default function ReservationsPage({
       // Transformer les données pour correspondre au format attendu
       const transformedReservations: ReservationWithDetails[] = data?.map(reservation => ({
         id: reservation.id,
-        usager: reservation.usager || 'Usager non spécifié',
-        chambre: reservation.chambre || '',
-        hotel: reservation.hotels?.nom || '',
-        dateArrivee: reservation.date_arrivee,
-        dateDepart: reservation.date_depart,
+        usager_id: reservation.usager_id,
+        chambre_id: reservation.chambre_id,
+        hotel_id: reservation.hotel_id,
+        date_arrivee: reservation.date_arrivee,
+        date_depart: reservation.date_depart,
         statut: reservation.statut,
-        prescripteur: reservation.prescripteur || reservation.operateurs_sociaux?.type_organisme || '',
-        prix: reservation.prix_total || reservation.prix || 0,
-        duree: reservation.duree || 0,
-        // Données supplémentaires pour les détails
+        prescripteur: reservation.prescripteur,
+        prix: reservation.prix,
+        duree: reservation.duree,
+        operateur_id: reservation.operateur_id,
+        notes: reservation.notes,
+        created_at: reservation.created_at,
+        updated_at: reservation.updated_at,
+        // Données supplémentaires pour les détails (à récupérer séparément si nécessaire)
         usagerDetails: { 
-          id: 0, 
-          nom: reservation.usager?.split(' ')[0] || '', 
-          prenom: reservation.usager?.split(' ')[1] || '',
+          id: reservation.usager_id, 
+          nom: 'Usager', 
+          prenom: 'Non spécifié',
           telephone: '',
           email: ''
         },
-        hotelDetails: reservation.hotels,
-        chambreDetails: { id: 0, numero: reservation.chambre || '', type: '' },
-        operateurDetails: reservation.operateurs_sociaux,
-        notes: reservation.notes
+        hotelDetails: { 
+          id: reservation.hotel_id, 
+          nom: 'Hôtel', 
+          adresse: '', 
+          ville: '' 
+        },
+        chambreDetails: { 
+          id: reservation.chambre_id, 
+          numero: 'Chambre', 
+          type: '' 
+        },
+        operateurDetails: reservation.operateur_id ? {
+          id: reservation.operateur_id,
+          nom: 'Opérateur',
+          prenom: 'Non spécifié',
+          organisation: ''
+        } : undefined
       })) || [];
 
       setReservations(transformedReservations);

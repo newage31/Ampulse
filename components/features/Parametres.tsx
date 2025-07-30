@@ -24,7 +24,7 @@ import {
 interface ParametresProps {
   features: {
     operateursSociaux: boolean;
-    messagerie: boolean;
+  
     statistiques: boolean;
     notifications: boolean;
   };
@@ -70,13 +70,7 @@ export default function Parametres({
       icon: Users,
       category: 'Fonctionnalités principales'
     },
-    {
-      key: 'messagerie',
-      title: 'Messagerie',
-      description: 'Système de communication avec les opérateurs',
-      icon: MessageSquare,
-      category: 'Communication'
-    },
+
     {
       key: 'statistiques',
       title: 'Statistiques avancées',

@@ -46,27 +46,39 @@ ADD COLUMN IF NOT EXISTS priorite VARCHAR(50) DEFAULT 'normale';
 CREATE INDEX IF NOT EXISTS idx_reservations_statut ON reservations(statut);
 CREATE INDEX IF NOT EXISTS idx_reservations_date_arrivee ON reservations(date_arrivee);
 CREATE INDEX IF NOT EXISTS idx_reservations_date_depart ON reservations(date_depart);
-CREATE INDEX IF NOT EXISTS idx_reservations_hotel ON reservations(hotel);
+CREATE INDEX IF NOT EXISTS idx_reservations_hotel_id ON reservations(hotel_id);
 CREATE INDEX IF NOT EXISTS idx_processus_reservation_id ON processus_reservations(reservation_id);
 CREATE INDEX IF NOT EXISTS idx_processus_statut ON processus_reservations(statut);
 
 -- Mise à jour des contraintes de clés étrangères
-ALTER TABLE reservations 
-ADD CONSTRAINT IF NOT EXISTS fk_reservations_hotel 
-FOREIGN KEY (hotel) REFERENCES hotels(nom) ON DELETE CASCADE;
-
-ALTER TABLE reservations 
-ADD CONSTRAINT IF NOT EXISTS fk_reservations_usager 
-FOREIGN KEY (usager) REFERENCES usagers(nom) ON DELETE CASCADE;
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'fk_reservations_hotel') THEN
+        ALTER TABLE reservations ADD CONSTRAINT fk_reservations_hotel 
+        FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE;
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'fk_reservations_usager') THEN
+        ALTER TABLE reservations ADD CONSTRAINT fk_reservations_usager 
+        FOREIGN KEY (usager_id) REFERENCES usagers(id) ON DELETE CASCADE;
+    END IF;
+END $$;
 
 -- Ajout de contraintes de validation
-ALTER TABLE reservations 
-ADD CONSTRAINT IF NOT EXISTS check_duree_positive 
-CHECK (duree > 0),
-ADD CONSTRAINT IF NOT EXISTS check_prix_positive 
-CHECK (prix > 0),
-ADD CONSTRAINT IF NOT EXISTS check_dates_valid 
-CHECK (date_arrivee < date_depart);
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'check_duree_positive') THEN
+        ALTER TABLE reservations ADD CONSTRAINT check_duree_positive CHECK (duree > 0);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'check_prix_positive') THEN
+        ALTER TABLE reservations ADD CONSTRAINT check_prix_positive CHECK (prix > 0);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name = 'check_dates_valid') THEN
+        ALTER TABLE reservations ADD CONSTRAINT check_dates_valid CHECK (date_arrivee < date_depart);
+    END IF;
+END $$;
 
 -- Fonction pour mettre à jour automatiquement les timestamps
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -78,35 +90,51 @@ END;
 $$ language 'plpgsql';
 
 -- Triggers pour mettre à jour automatiquement updated_at
-CREATE TRIGGER IF NOT EXISTS update_reservations_updated_at 
-    BEFORE UPDATE ON reservations 
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER IF NOT EXISTS update_hotels_updated_at 
-    BEFORE UPDATE ON hotels 
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER IF NOT EXISTS update_usagers_updated_at 
-    BEFORE UPDATE ON usagers 
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER IF NOT EXISTS update_processus_reservations_updated_at 
-    BEFORE UPDATE ON processus_reservations 
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.triggers WHERE trigger_name = 'update_reservations_updated_at') THEN
+        CREATE TRIGGER update_reservations_updated_at 
+            BEFORE UPDATE ON reservations 
+            FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.triggers WHERE trigger_name = 'update_hotels_updated_at') THEN
+        CREATE TRIGGER update_hotels_updated_at 
+            BEFORE UPDATE ON hotels 
+            FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.triggers WHERE trigger_name = 'update_usagers_updated_at') THEN
+        CREATE TRIGGER update_usagers_updated_at 
+            BEFORE UPDATE ON usagers 
+            FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM information_schema.triggers WHERE trigger_name = 'update_processus_reservations_updated_at') THEN
+        CREATE TRIGGER update_processus_reservations_updated_at 
+            BEFORE UPDATE ON processus_reservations 
+            FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+    END IF;
+END $$;
 
 -- Fonction pour calculer automatiquement la durée d'une réservation
 CREATE OR REPLACE FUNCTION calculate_reservation_duration()
 RETURNS TRIGGER AS $$
 BEGIN
-    NEW.duree = EXTRACT(DAY FROM (NEW.date_depart::date - NEW.date_arrivee::date));
+    NEW.duree = (NEW.date_depart::date - NEW.date_arrivee::date);
     RETURN NEW;
 END;
 $$ language 'plpgsql';
 
 -- Trigger pour calculer automatiquement la durée
-CREATE TRIGGER IF NOT EXISTS trigger_calculate_duration
-    BEFORE INSERT OR UPDATE ON reservations
-    FOR EACH ROW EXECUTE FUNCTION calculate_reservation_duration();
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.triggers WHERE trigger_name = 'trigger_calculate_duration') THEN
+        CREATE TRIGGER trigger_calculate_duration
+            BEFORE INSERT OR UPDATE ON reservations
+            FOR EACH ROW EXECUTE FUNCTION calculate_reservation_duration();
+    END IF;
+END $$;
 
 -- Fonction pour mettre à jour le nombre de chambres disponibles
 CREATE OR REPLACE FUNCTION update_hotel_availability()
@@ -117,21 +145,26 @@ BEGIN
     SET chambres_disponibles = chambres_total - (
         SELECT COUNT(*) 
         FROM reservations 
-        WHERE hotel = NEW.hotel 
+        WHERE hotel_id = NEW.hotel_id 
         AND statut IN ('CONFIRMEE', 'EN_COURS')
         AND date_arrivee <= CURRENT_DATE 
         AND date_depart >= CURRENT_DATE
     )
-    WHERE nom = NEW.hotel;
+    WHERE id = NEW.hotel_id;
     
     RETURN NEW;
 END;
 $$ language 'plpgsql';
 
 -- Trigger pour mettre à jour la disponibilité des hôtels
-CREATE TRIGGER IF NOT EXISTS trigger_update_hotel_availability
-    AFTER INSERT OR UPDATE OR DELETE ON reservations
-    FOR EACH ROW EXECUTE FUNCTION update_hotel_availability();
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.triggers WHERE trigger_name = 'trigger_update_hotel_availability') THEN
+        CREATE TRIGGER trigger_update_hotel_availability
+            AFTER INSERT OR UPDATE OR DELETE ON reservations
+            FOR EACH ROW EXECUTE FUNCTION update_hotel_availability();
+    END IF;
+END $$;
 
 -- Mise à jour des données existantes
 UPDATE hotels SET chambres_disponibles = chambres_total WHERE chambres_disponibles IS NULL;

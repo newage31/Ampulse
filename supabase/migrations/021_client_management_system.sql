@@ -1,5 +1,5 @@
--- Migration 005: Gestion complète des clients
--- Système pour gérer les clients : associations, entreprises et particuliers
+-- Migration 021: Système complet de gestion des clients
+-- Gestion des clients : associations, entreprises et particuliers
 
 -- Table des types de clients
 CREATE TABLE IF NOT EXISTS public.client_types (
@@ -7,9 +7,9 @@ CREATE TABLE IF NOT EXISTS public.client_types (
     nom VARCHAR(50) NOT NULL UNIQUE,
     description TEXT,
     icone VARCHAR(50),
-    couleur VARCHAR(20) DEFAULT '#3B82F6',
+    couleur VARCHAR(7),
     ordre INTEGER DEFAULT 0,
-    actif BOOLEAN DEFAULT TRUE,
+    actif BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -17,15 +17,15 @@ CREATE TABLE IF NOT EXISTS public.client_types (
 -- Table principale des clients
 CREATE TABLE IF NOT EXISTS public.clients (
     id SERIAL PRIMARY KEY,
-    type_id INTEGER NOT NULL REFERENCES public.client_types(id),
-    nom VARCHAR(255) NOT NULL,
-    prenom VARCHAR(255), -- Pour les particuliers
-    raison_sociale VARCHAR(255), -- Pour les entreprises/associations
+    type_id INTEGER REFERENCES public.client_types(id),
+    numero_client VARCHAR(50) UNIQUE,
+    nom VARCHAR(100) NOT NULL,
+    prenom VARCHAR(100),
+    raison_sociale VARCHAR(255),
     siret VARCHAR(14),
     siren VARCHAR(9),
     tva_intracommunautaire VARCHAR(20),
-    numero_client VARCHAR(50) UNIQUE,
-    statut VARCHAR(20) NOT NULL DEFAULT 'actif' CHECK (statut IN ('actif', 'inactif', 'prospect', 'archive')),
+    statut VARCHAR(20) DEFAULT 'actif' CHECK (statut IN ('actif', 'inactif', 'prospect', 'archive')),
     
     -- Informations de contact
     email VARCHAR(255),
@@ -42,9 +42,9 @@ CREATE TABLE IF NOT EXISTS public.clients (
     pays VARCHAR(100) DEFAULT 'France',
     
     -- Informations spécifiques
-    date_creation DATE,
-    date_modification DATE,
-    source_acquisition VARCHAR(100), -- Comment le client a été acquis
+    date_creation DATE DEFAULT CURRENT_DATE,
+    date_modification TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    source_acquisition VARCHAR(100),
     notes TEXT,
     tags TEXT[],
     
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS public.clients (
     -- Informations commerciales
     commercial_id UUID REFERENCES public.users(id),
     secteur_activite VARCHAR(100),
-    taille_entreprise VARCHAR(50), -- PME, Grande entreprise, etc.
+    taille_entreprise VARCHAR(50),
     chiffre_affaires VARCHAR(50),
     nombre_employes INTEGER,
     
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS public.clients (
     -- Informations pour particuliers
     date_naissance DATE,
     lieu_naissance VARCHAR(100),
-    nationalite VARCHAR(100),
+    nationalite VARCHAR(50),
     situation_familiale VARCHAR(50),
     nombre_enfants INTEGER DEFAULT 0,
     profession VARCHAR(100),
@@ -88,17 +88,19 @@ CREATE TABLE IF NOT EXISTS public.clients (
     updated_by UUID REFERENCES public.users(id)
 );
 
+
+
 -- Table des contacts pour les clients (entreprises/associations)
 CREATE TABLE IF NOT EXISTS public.client_contacts (
     id SERIAL PRIMARY KEY,
     client_id INTEGER NOT NULL REFERENCES public.clients(id) ON DELETE CASCADE,
     nom VARCHAR(100) NOT NULL,
-    prenom VARCHAR(100) NOT NULL,
+    prenom VARCHAR(100),
     fonction VARCHAR(100),
     email VARCHAR(255),
     telephone VARCHAR(20),
     telephone_mobile VARCHAR(20),
-    principal BOOLEAN DEFAULT FALSE,
+    principal BOOLEAN DEFAULT false,
     notes TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -108,31 +110,28 @@ CREATE TABLE IF NOT EXISTS public.client_contacts (
 CREATE TABLE IF NOT EXISTS public.client_documents (
     id SERIAL PRIMARY KEY,
     client_id INTEGER NOT NULL REFERENCES public.clients(id) ON DELETE CASCADE,
-    type_document VARCHAR(50) NOT NULL, -- 'contrat', 'devis', 'facture', 'justificatif', etc.
-    nom_fichier VARCHAR(255) NOT NULL,
-    chemin_fichier VARCHAR(500) NOT NULL,
-    taille_fichier INTEGER,
-    type_mime VARCHAR(100),
-    description TEXT,
+    nom VARCHAR(255) NOT NULL,
+    type VARCHAR(50),
+    url VARCHAR(500),
+    taille INTEGER,
     date_upload TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    uploaded_by UUID REFERENCES public.users(id),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Table des interactions avec les clients
 CREATE TABLE IF NOT EXISTS public.client_interactions (
     id SERIAL PRIMARY KEY,
     client_id INTEGER NOT NULL REFERENCES public.clients(id) ON DELETE CASCADE,
-    type_interaction VARCHAR(50) NOT NULL, -- 'appel', 'email', 'rdv', 'visite', 'reservation'
+    type VARCHAR(50) NOT NULL,
     sujet VARCHAR(255),
     description TEXT,
     date_interaction TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     duree_minutes INTEGER,
     resultat VARCHAR(100),
     prochaine_action TEXT,
-    priorite VARCHAR(20) DEFAULT 'normale' CHECK (priorite IN ('basse', 'normale', 'haute', 'urgente')),
-    statut VARCHAR(20) DEFAULT 'planifie' CHECK (statut IN ('planifie', 'en_cours', 'termine', 'annule')),
-    user_id UUID REFERENCES public.users(id),
+    created_by UUID REFERENCES public.users(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -143,9 +142,9 @@ CREATE TABLE IF NOT EXISTS public.client_notes (
     client_id INTEGER NOT NULL REFERENCES public.clients(id) ON DELETE CASCADE,
     titre VARCHAR(255),
     contenu TEXT NOT NULL,
-    type_note VARCHAR(50) DEFAULT 'general', -- 'general', 'commercial', 'technique', 'administratif'
-    privee BOOLEAN DEFAULT FALSE,
-    user_id UUID REFERENCES public.users(id),
+    type VARCHAR(50) DEFAULT 'general',
+    prive BOOLEAN DEFAULT false,
+    created_by UUID REFERENCES public.users(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -153,11 +152,11 @@ CREATE TABLE IF NOT EXISTS public.client_notes (
 -- Table des segments clients
 CREATE TABLE IF NOT EXISTS public.client_segments (
     id SERIAL PRIMARY KEY,
-    nom VARCHAR(100) NOT NULL UNIQUE,
+    nom VARCHAR(100) NOT NULL,
     description TEXT,
-    criteres JSONB, -- Critères de segmentation
-    couleur VARCHAR(20) DEFAULT '#6B7280',
-    actif BOOLEAN DEFAULT TRUE,
+    criteres JSONB,
+    couleur VARCHAR(7),
+    actif BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -168,7 +167,6 @@ CREATE TABLE IF NOT EXISTS public.client_segment_assignments (
     client_id INTEGER NOT NULL REFERENCES public.clients(id) ON DELETE CASCADE,
     segment_id INTEGER NOT NULL REFERENCES public.client_segments(id) ON DELETE CASCADE,
     date_assignment TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    assigned_by UUID REFERENCES public.users(id),
     UNIQUE(client_id, segment_id)
 );
 
@@ -176,31 +174,28 @@ CREATE TABLE IF NOT EXISTS public.client_segment_assignments (
 CREATE OR REPLACE FUNCTION generate_client_number()
 RETURNS TRIGGER AS $$
 DECLARE
+    type_code VARCHAR(3);
     next_number INTEGER;
-    client_type_code VARCHAR(3);
 BEGIN
-    -- Générer le numéro client seulement s'il n'est pas déjà défini
-    IF NEW.numero_client IS NULL THEN
-        -- Récupérer le code du type de client
-        SELECT 
-            CASE 
-                WHEN ct.nom = 'Particulier' THEN 'PAR'
-                WHEN ct.nom = 'Entreprise' THEN 'ENT'
-                WHEN ct.nom = 'Association' THEN 'ASS'
-                ELSE 'CLI'
-            END INTO client_type_code
-        FROM client_types ct 
-        WHERE ct.id = NEW.type_id;
-        
-        -- Trouver le prochain numéro pour ce type
-        SELECT COALESCE(MAX(CAST(SUBSTRING(numero_client FROM 4) AS INTEGER)), 0) + 1
-        INTO next_number
-        FROM clients 
-        WHERE numero_client LIKE client_type_code || '%';
-        
-        -- Formater le numéro client (ex: PAR001, ENT001, ASS001)
-        NEW.numero_client := client_type_code || LPAD(next_number::TEXT, 6, '0');
-    END IF;
+    -- Déterminer le code selon le type
+    SELECT 
+        CASE 
+            WHEN ct.nom = 'Particulier' THEN 'PAR'
+            WHEN ct.nom = 'Entreprise' THEN 'ENT'
+            WHEN ct.nom = 'Association' THEN 'ASS'
+            ELSE 'CLI'
+        END INTO type_code
+    FROM client_types ct 
+    WHERE ct.id = NEW.type_id;
+    
+    -- Trouver le prochain numéro pour ce type
+    SELECT COALESCE(MAX(CAST(SUBSTRING(numero_client FROM 4) AS INTEGER)), 0) + 1
+    INTO next_number
+    FROM clients 
+    WHERE numero_client LIKE type_code || '%';
+    
+    -- Générer le nouveau numéro
+    NEW.numero_client := type_code || LPAD(next_number::TEXT, 4, '0');
     
     RETURN NEW;
 END;
@@ -217,33 +212,33 @@ CREATE TRIGGER trigger_generate_client_number
 CREATE OR REPLACE FUNCTION update_client_stats()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Mettre à jour les statistiques du client lors d'une nouvelle réservation
-    IF TG_OP = 'INSERT' THEN
-        UPDATE clients 
-        SET 
-            nombre_reservations = nombre_reservations + 1,
-            montant_total_reservations = montant_total_reservations + NEW.prix,
-            date_derniere_reservation = CURRENT_DATE,
-            derniere_activite = NOW()
-        WHERE id = NEW.usager_id;
-    ELSIF TG_OP = 'UPDATE' THEN
-        -- Mettre à jour les statistiques si le prix change
-        UPDATE clients 
-        SET 
-            montant_total_reservations = montant_total_reservations - OLD.prix + NEW.prix,
-            derniere_activite = NOW()
-        WHERE id = NEW.usager_id;
-    ELSIF TG_OP = 'DELETE' THEN
-        -- Mettre à jour les statistiques lors de la suppression
-        UPDATE clients 
-        SET 
-            nombre_reservations = nombre_reservations - 1,
-            montant_total_reservations = montant_total_reservations - OLD.prix,
-            derniere_activite = NOW()
-        WHERE id = OLD.usager_id;
-    END IF;
+    -- Mettre à jour les statistiques du client concerné
+    UPDATE clients
+    SET 
+        nombre_reservations = (
+            SELECT COUNT(*) 
+            FROM reservations 
+            WHERE usager_id = NEW.usager_id
+        ),
+                montant_total_reservations = (
+            SELECT COALESCE(SUM(prix * duree), 0)
+            FROM reservations
+            WHERE usager_id = NEW.usager_id
+        ),
+        date_derniere_reservation = (
+            SELECT MAX(date_arrivee)
+            FROM reservations 
+            WHERE usager_id = NEW.usager_id
+        ),
+        derniere_activite = NOW()
+    WHERE id = (
+        SELECT id FROM clients WHERE numero_client = (
+            SELECT numero_client FROM usagers WHERE id = NEW.usager_id
+        )
+        LIMIT 1
+    );
     
-    RETURN COALESCE(NEW, OLD);
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -332,15 +327,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Index pour améliorer les performances
-CREATE INDEX IF NOT EXISTS idx_clients_type_id ON public.clients(type_id);
-CREATE INDEX IF NOT EXISTS idx_clients_statut ON public.clients(statut);
-CREATE INDEX IF NOT EXISTS idx_clients_numero_client ON public.clients(numero_client);
-CREATE INDEX IF NOT EXISTS idx_clients_email ON public.clients(email);
-CREATE INDEX IF NOT EXISTS idx_clients_siret ON public.clients(siret);
-CREATE INDEX IF NOT EXISTS idx_clients_ville ON public.clients(ville);
-CREATE INDEX IF NOT EXISTS idx_clients_date_creation ON public.clients(date_creation);
-CREATE INDEX IF NOT EXISTS idx_clients_commercial_id ON public.clients(commercial_id);
+-- Les index seront créés dans la migration suivante
 CREATE INDEX IF NOT EXISTS idx_client_contacts_client_id ON public.client_contacts(client_id);
 CREATE INDEX IF NOT EXISTS idx_client_contacts_principal ON public.client_contacts(principal);
 CREATE INDEX IF NOT EXISTS idx_client_documents_client_id ON public.client_documents(client_id);
@@ -374,17 +361,11 @@ CREATE TRIGGER update_client_segments_updated_at
     BEFORE UPDATE ON public.client_segments 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- Insertion des types de clients par défaut
+-- Insérer les types de clients par défaut
 INSERT INTO public.client_types (nom, description, icone, couleur, ordre) VALUES
-('Particulier', 'Clients particuliers', 'user', '#3B82F6', 1),
-('Entreprise', 'Entreprises et organisations privées', 'building', '#10B981', 2),
-('Association', 'Associations et organisations à but non lucratif', 'users', '#F59E0B', 3)
+('Particulier', 'Client individuel', 'user', '#3B82F6', 1),
+('Entreprise', 'Société commerciale', 'building', '#10B981', 2),
+('Association', 'Organisation à but non lucratif', 'users', '#F59E0B', 3)
 ON CONFLICT (nom) DO NOTHING;
 
--- Insertion de segments clients par défaut
-INSERT INTO public.client_segments (nom, description, couleur) VALUES
-('Clients Premium', 'Clients avec un volume d''affaires élevé', '#10B981'),
-('Nouveaux Clients', 'Clients créés dans les 3 derniers mois', '#3B82F6'),
-('Clients Inactifs', 'Clients sans activité depuis 6 mois', '#6B7280'),
-('Clients Fidèles', 'Clients avec plus de 5 réservations', '#F59E0B')
-ON CONFLICT (nom) DO NOTHING; 
+-- Les données d'exemple seront insérées dans la migration suivante 

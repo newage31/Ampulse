@@ -59,6 +59,15 @@ export default function ConventionDetail({ convention, hotel, operateur, onBack,
               <div className="font-medium text-gray-900">{convention.typeChambre}</div>
             </div>
             <div>
+              <div className="text-sm text-gray-600">Mode de tarification</div>
+              <div className="font-medium text-gray-900">
+                <Badge variant="outline">
+                  {convention.modeTarification === 'par_chambre' ? 'Par chambre' :
+                   convention.modeTarification === 'par_personne' ? 'Par personne' : 'Par mois'}
+                </Badge>
+              </div>
+            </div>
+            <div>
               <div className="text-sm text-gray-600">Opérateur social</div>
               <div className="font-medium text-gray-900">{operateur ? `${operateur.prenom} ${operateur.nom}` : convention.operateurId}</div>
             </div>
@@ -88,6 +97,49 @@ export default function ConventionDetail({ convention, hotel, operateur, onBack,
               </div>
             </div>
           </div>
+
+          {/* Informations spécifiques selon le mode de tarification */}
+          {convention.modeTarification === 'par_personne' && convention.prixParPersonne && (
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h3 className="font-medium text-blue-900 mb-2">Tarification par personne</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <div className="text-sm text-blue-700">Prix par personne</div>
+                  <div className="font-medium text-blue-900">{convention.prixParPersonne}€</div>
+                </div>
+                {convention.nombrePersonnesMax && (
+                  <div>
+                    <div className="text-sm text-blue-700">Nombre max de personnes</div>
+                    <div className="font-medium text-blue-900">{convention.nombrePersonnesMax}</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {convention.modeTarification === 'par_mois' && convention.prixParMois && (
+            <div className="bg-green-50 p-4 rounded-lg">
+              <h3 className="font-medium text-green-900 mb-2">Tarification par mois</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <div className="text-sm text-green-700">Prix par mois</div>
+                  <div className="font-medium text-green-900">{convention.prixParMois}€</div>
+                </div>
+                {convention.dureeMinimumMois && (
+                  <div>
+                    <div className="text-sm text-green-700">Durée minimum</div>
+                    <div className="font-medium text-green-900">{convention.dureeMinimumMois} mois</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          {convention.conditionsSpeciales && (
+            <div className="flex items-center mt-4 bg-blue-50 p-3 rounded">
+              <AlertTriangle className="h-4 w-4 mr-2 text-blue-600" />
+              <span className="text-sm text-blue-800">{convention.conditionsSpeciales}</span>
+            </div>
+          )}
           {convention.conditions && (
             <div className="flex items-center mt-4 bg-yellow-50 p-3 rounded">
               <AlertTriangle className="h-4 w-4 mr-2 text-yellow-600" />

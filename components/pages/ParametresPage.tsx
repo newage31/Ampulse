@@ -18,7 +18,7 @@ import DocumentsManagement from '../features/DocumentsManagement';
 interface ParametresPageProps {
   features: {
     operateursSociaux: boolean;
-    messagerie: boolean;
+  
     statistiques: boolean;
     notifications: boolean;
   };
@@ -78,12 +78,7 @@ export default function ParametresPage({
       icon: <Users className="h-4 w-4" />,
       badge: features.operateursSociaux ? 1 : 0
     },
-    {
-      id: 'messagerie',
-      label: 'Messagerie',
-      icon: <MessageSquare className="h-4 w-4" />,
-      badge: features.messagerie ? 1 : 0
-    },
+
     {
       id: 'statistiques',
       label: 'Statistiques',
@@ -144,25 +139,7 @@ export default function ParametresPage({
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                    <div>
-                      <div className="font-medium">Messagerie</div>
-                      <div className="text-sm text-gray-600">Système de communication</div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className={`px-2 py-1 rounded text-xs ${
-                        features.messagerie ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}>
-                        {features.messagerie ? 'Activé' : 'Désactivé'}
-                      </span>
-                      <button
-                        onClick={() => onFeatureToggle('messagerie', !features.messagerie)}
-                        className="text-blue-600 hover:text-blue-800 text-sm"
-                      >
-                        {features.messagerie ? 'Désactiver' : 'Activer'}
-                      </button>
-                    </div>
-                  </div>
+
                 </div>
               </div>
               
@@ -308,56 +285,7 @@ export default function ParametresPage({
           </div>
         );
         
-      case 'messagerie':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Paramètres de messagerie</h2>
-              <p className="text-gray-600 mb-6">Configurez le système de communication</p>
-            </div>
-            
-            <div className="space-y-6">
-              <div className="p-4 border border-gray-200 rounded-lg">
-                <h3 className="font-semibold text-gray-800 mb-3">Statut de la fonctionnalité</h3>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-medium">Messagerie</div>
-                    <div className="text-sm text-gray-600">Système de communication avec les opérateurs</div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className={`px-3 py-1 rounded-full text-sm ${
-                      features.messagerie ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {features.messagerie ? 'Activé' : 'Désactivé'}
-                    </span>
-                    <button
-                      onClick={() => onFeatureToggle('messagerie', !features.messagerie)}
-                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                    >
-                      {features.messagerie ? 'Désactiver' : 'Activer'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-              
-              {features.messagerie && (
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-800">Configuration de la messagerie</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 border border-gray-200 rounded-lg">
-                      <h4 className="font-medium mb-2">Notifications par email</h4>
-                      <p className="text-sm text-gray-600">Activez les notifications par email pour les nouveaux messages</p>
-                    </div>
-                    <div className="p-4 border border-gray-200 rounded-lg">
-                      <h4 className="font-medium mb-2">Archivage automatique</h4>
-                      <p className="text-sm text-gray-600">Archivez automatiquement les conversations anciennes</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        );
+
         
       case 'statistiques':
         return (

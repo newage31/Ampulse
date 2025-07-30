@@ -57,7 +57,7 @@ La fonctionnalité de gestion des rôles et permissions a été entièrement tes
 3. **Chambres** - Gestion des chambres et disponibilités
 4. **Gestion** - Gestion des clients et usagers
 5. **Opérateurs** - Gestion des opérateurs sociaux
-6. **Messagerie** - Système de messagerie interne
+
 7. **Paramètres** - Configuration de l'application
 8. **Utilisateurs** - Gestion des utilisateurs et permissions
 9. **Comptabilité** - Gestion comptable et facturation

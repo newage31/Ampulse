@@ -8,7 +8,7 @@ import ReservationsPage from '../components/pages/ReservationsPage';
 import ChambresPage from '../components/pages/ChambresPage';
 import GestionPage from '../components/pages/GestionPage';
 import OperateursTable from '../components/features/OperateursTable';
-import Messagerie from '../components/features/Messagerie';
+
 import ParametresPage from '../components/pages/ParametresPage';
 import TestPDFGeneration from '../components/features/TestPDFGeneration';
 import ReportsPage from '../components/pages/ReportsPage';
@@ -48,7 +48,7 @@ export default function Home() {
   // État pour les fonctionnalités activées/désactivées
   const [features, setFeatures] = useState({
     operateursSociaux: true,
-    messagerie: true,
+
     statistiques: true,
     notifications: true
   });
@@ -393,23 +393,7 @@ export default function Home() {
             onOperateurSelect={handleOperateurSelect}
           />
         );
-      case 'messagerie':
-        if (!features.messagerie) {
-          return (
-            <div className="text-center py-12">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Fonctionnalité désactivée</h2>
-              <p className="text-gray-600">La messagerie a été désactivée dans les paramètres.</p>
-            </div>
-          );
-        }
-        return (
-          <Messagerie
-            conversations={filteredConversations}
-            messages={messages}
-            operateurs={filteredOperateurs}
-            onSendMessage={handleSendMessage}
-          />
-        );
+
       case 'rapports':
         return <ReportsPage hotels={hotels} selectedHotelId={selectedHotel} />;
       case 'parametres':

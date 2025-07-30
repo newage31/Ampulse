@@ -12,14 +12,13 @@ import {
   FileText
 } from 'lucide-react';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 interface SidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   features?: {
     operateursSociaux: boolean;
-    messagerie: boolean;
+  
     statistiques: boolean;
     notifications: boolean;
   };
@@ -27,8 +26,6 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ activeTab, onTabChange, features, selectedHotel }: SidebarProps) {
-  const router = useRouter();
-  
   // Protection contre les erreurs de rendu
   if (!features) {
     console.warn('Sidebar: features is undefined, using defaults');
@@ -36,11 +33,10 @@ export default function Sidebar({ activeTab, onTabChange, features, selectedHote
 
   const tabs = [
     { id: 'dashboard', label: 'Tableau de bord', icon: Home, alwaysVisible: true },
-    { id: 'reservations', label: 'Réservations', icon: Calendar, alwaysVisible: true },
-    { id: 'chambres', label: 'Chambres', icon: Building2, alwaysVisible: true },
-    { id: 'operateurs', label: 'Clients', icon: Users, feature: 'operateursSociaux' },
-    { id: 'messagerie', label: 'Messagerie', icon: MessageSquare, feature: 'messagerie' },
-    { id: 'rapports', label: 'Rapports', icon: FileText, alwaysVisible: true },
+      { id: 'reservations', label: 'Réservations', icon: Calendar, alwaysVisible: true },
+  { id: 'chambres', label: 'Chambres', icon: Building2, alwaysVisible: true },
+  { id: 'operateurs', label: 'Clients', icon: Users, feature: 'operateursSociaux' },
+  { id: 'rapports', label: 'Rapports', icon: FileText, alwaysVisible: true },
     { id: 'gestion', label: 'Gestion', icon: BarChart3, feature: 'statistiques' },
     { id: 'parametres', label: 'Paramètres', icon: Settings, alwaysVisible: true }
   ];
@@ -48,7 +44,7 @@ export default function Sidebar({ activeTab, onTabChange, features, selectedHote
   // Valeurs par défaut si features n'est pas défini
   const defaultFeatures = {
     operateursSociaux: true,
-    messagerie: true,
+
     statistiques: true,
     notifications: true
   };
@@ -65,13 +61,8 @@ export default function Sidebar({ activeTab, onTabChange, features, selectedHote
   });
 
   const handleTabClick = (tabId: string) => {
-    if (tabId === 'dashboard') {
-      // Redirection vers la page d'accueil
-      router.push('/');
-    } else {
-      // Changement d'onglet normal
-      onTabChange(tabId);
-    }
+    // Changement d'onglet normal pour tous les onglets
+    onTabChange(tabId);
   };
 
   const renderTab = (tab: any) => {
