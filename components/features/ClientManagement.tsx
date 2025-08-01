@@ -321,10 +321,13 @@ export default function ClientManagement({ onClientSelect, activeTab: externalAc
                         </Badge>
                         <div className="text-right">
                           <div className="text-sm font-medium">
-                            {client.nombre_reservations} réservations
+                            {client.nombre_reservations || 0} réservations
                           </div>
                           <div className="text-sm text-gray-500">
-                            {client.montant_total_reservations.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
+                            {client.montant_total_reservations 
+                              ? client.montant_total_reservations.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })
+                              : '0,00 €'
+                            }
                           </div>
                         </div>
                       </div>
@@ -545,9 +548,11 @@ function AddClientForm({
                 required
               >
                 <option value="">Sélectionner un type</option>
-                {clientTypes.map(type => (
-                  <option key={type.id} value={type.id}>{type.nom}</option>
-                ))}
+                {clientTypes
+                  .filter(type => type.nom !== 'Association') // Filtrer les associations pour l'ajout
+                  .map(type => (
+                    <option key={type.id} value={type.id}>{type.nom}</option>
+                  ))}
               </select>
             </div>
           )}
@@ -1123,8 +1128,11 @@ function ClientDetails({
                   <div>
                     <h3 className="font-medium mb-3">Statistiques</h3>
                     <div className="space-y-2">
-                      <div><strong>Réservations:</strong> {client.nombre_reservations}</div>
-                      <div><strong>Chiffre d'affaires:</strong> {client.montant_total_reservations.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</div>
+                      <div><strong>Réservations:</strong> {client.nombre_reservations || 0}</div>
+                      <div><strong>Chiffre d'affaires:</strong> {client.montant_total_reservations 
+                        ? client.montant_total_reservations.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })
+                        : '0,00 €'
+                      }</div>
                       {client.date_derniere_reservation && (
                         <div><strong>Dernière réservation:</strong> {new Date(client.date_derniere_reservation).toLocaleDateString('fr-FR')}</div>
                       )}
@@ -1135,7 +1143,10 @@ function ClientDetails({
                     <div className="space-y-2">
                       <div><strong>Conditions de paiement:</strong> {client.conditions_paiement}</div>
                       {client.limite_credit && <div><strong>Limite de crédit:</strong> {client.limite_credit.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</div>}
-                      <div><strong>Solde compte:</strong> {client.solde_compte.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</div>
+                      <div><strong>Solde compte:</strong> {client.solde_compte 
+                        ? client.solde_compte.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })
+                        : '0,00 €'
+                      }</div>
                     </div>
                   </div>
                 </div>

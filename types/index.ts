@@ -378,7 +378,7 @@ export interface User {
   permissions: Permission[];
 }
 
-export type UserRole = 'admin' | 'manager' | 'comptable' | 'receptionniste';
+export type UserRole = 'admin' | 'manager' | 'comptable' | 'receptionniste' | 'technicien_maintenance' | 'femme_menage';
 
 export interface Permission {
   module: string;

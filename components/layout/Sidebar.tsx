@@ -1,15 +1,20 @@
 "use client";
 
 import { Button } from '../ui/button';
-import { 
-  Home, 
-  Building2, 
-  Calendar, 
-  Users, 
+import {
+  Building2,
+  Calendar,
+  Users,
   MessageSquare,
   Settings,
   BarChart3,
-  FileText
+  FileText,
+  ChevronDown,
+  ChevronRight,
+  Calculator,
+  Receipt,
+  DollarSign,
+  Download
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -26,18 +31,60 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ activeTab, onTabChange, features, selectedHotel }: SidebarProps) {
+  const [expandedComptabilite, setExpandedComptabilite] = useState(false);
+
   // Protection contre les erreurs de rendu
   if (!features) {
     console.warn('Sidebar: features is undefined, using defaults');
   }
 
   const tabs = [
-    { id: 'dashboard', label: 'Tableau de bord', icon: Home, alwaysVisible: true },
-      { id: 'reservations', label: 'Réservations', icon: Calendar, alwaysVisible: true },
-  { id: 'chambres', label: 'Chambres', icon: Building2, alwaysVisible: true },
-  { id: 'operateurs', label: 'Clients', icon: Users, feature: 'operateursSociaux' },
-  { id: 'rapports', label: 'Rapports', icon: FileText, alwaysVisible: true },
-    { id: 'gestion', label: 'Gestion', icon: BarChart3, feature: 'statistiques' },
+    { 
+      id: 'reservations-disponibilite', 
+      label: 'Tableau de bord', 
+      icon: Calendar, 
+      alwaysVisible: true
+    },
+    { 
+      id: 'reservations-liste', 
+      label: 'Réservations', 
+      icon: Calendar, 
+      alwaysVisible: true
+    },
+    { 
+      id: 'reservations-calendrier', 
+      label: 'Calendrier', 
+      icon: Calendar, 
+      alwaysVisible: true
+    },
+    { 
+      id: 'clients', 
+      label: 'Clients', 
+      icon: Users, 
+      alwaysVisible: true
+    },
+
+        {
+      id: 'analyses-donnees',
+      label: 'Analyses de données',
+      icon: BarChart3,
+      alwaysVisible: true
+    },
+    {
+      id: 'comptabilite',
+      label: 'Comptabilité',
+      icon: Calculator,
+      alwaysVisible: true,
+      hasSubmenu: true,
+      submenu: [
+        { id: 'comptabilite-journaux', label: 'Journaux Comptables', icon: FileText },
+        { id: 'comptabilite-facturation-paiements', label: 'Facturation & Paiements', icon: Receipt },
+        { id: 'comptabilite-analytique', label: 'Comptabilité Analytique', icon: BarChart3 },
+        { id: 'comptabilite-exports', label: 'Exports Comptables', icon: Download },
+        { id: 'comptabilite-tva-taxes', label: 'TVA & Taxes', icon: Calculator },
+        { id: 'comptabilite-clients', label: 'Comptes Clients', icon: Users }
+      ]
+    },
     { id: 'parametres', label: 'Paramètres', icon: Settings, alwaysVisible: true }
   ];
 
@@ -61,28 +108,80 @@ export default function Sidebar({ activeTab, onTabChange, features, selectedHote
   });
 
   const handleTabClick = (tabId: string) => {
-    // Changement d'onglet normal pour tous les onglets
+    // Si c'est l'onglet Comptabilité, basculer l'expansion du sous-menu
+    if (tabId === 'comptabilite') {
+      setExpandedComptabilite(!expandedComptabilite);
+      return;
+    }
+    
+    // Changement d'onglet normal pour tous les autres onglets
     onTabChange(tabId);
+  };
+
+  const handleSubmenuClick = (submenuId: string) => {
+    onTabChange(submenuId);
   };
 
   const renderTab = (tab: any) => {
     const Icon = tab.icon;
-    const isActive = activeTab === tab.id;
+                    const isActive = activeTab === tab.id;
+                const isComptabiliteActive = activeTab.startsWith('comptabilite-');
 
     return (
       <li key={tab.id}>
         <Button
-          variant={isActive ? 'default' : 'ghost'}
-          className={`w-full justify-start ${
-            isActive 
-              ? 'bg-blue-500 text-white hover:bg-blue-600' 
-              : 'text-gray-700 hover:bg-gray-100'
-          }`}
+                                          variant={isActive || (tab.id === 'comptabilite' && isComptabiliteActive) ? 'default' : 'ghost'}
+                      className={`w-full justify-start ${
+                        isActive || (tab.id === 'comptabilite' && isComptabiliteActive)
+                          ? 'bg-blue-500 text-white hover:bg-blue-600'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
           onClick={() => handleTabClick(tab.id)}
         >
           <Icon className="h-4 w-4 mr-3" />
           {tab.label}
+                                {tab.hasSubmenu && (
+              <span className="ml-auto">
+                {(tab.id === 'comptabilite' && expandedComptabilite) ?
+                  <ChevronDown className="h-4 w-4" /> :
+                  <ChevronRight className="h-4 w-4" />
+                }
+              </span>
+            )}
         </Button>
+        
+
+
+
+
+          {/* Sous-menu pour Comptabilité */}
+          {tab.hasSubmenu && tab.id === 'comptabilite' && expandedComptabilite && (
+            <ul className="ml-6 mt-1 space-y-1">
+              {tab.submenu.map((subItem: any) => {
+                const SubIcon = subItem.icon;
+                const isSubActive = activeTab === subItem.id;
+
+                return (
+                  <li key={subItem.id}>
+                    <Button
+                      variant={isSubActive ? 'default' : 'ghost'}
+                      className={`w-full justify-start text-sm ${
+                        isSubActive
+                          ? 'bg-blue-400 text-white hover:bg-blue-500'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                      onClick={() => handleSubmenuClick(subItem.id)}
+                    >
+                      <SubIcon className="h-3 w-3 mr-2" />
+                      {subItem.label}
+                    </Button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        
+        
       </li>
     );
   };

@@ -1,20 +1,17 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
-import { ReportGenerator, sampleData } from '../../utils/reportGenerator';
-import ReportCharts from '../features/ReportCharts';
 import { 
-  FileText, 
+  BarChart3, 
   Download, 
   Calendar, 
   TrendingUp, 
   Building2, 
   Users, 
   Euro,
-  BarChart3,
   PieChart,
   Filter,
   Search,
@@ -27,27 +24,35 @@ import {
   Eye,
   Settings,
   Code,
-  Clock
+  Clock,
+  X,
+  ChevronDown,
+  ChevronRight,
+  FileText,
+  Database,
+  BarChart,
+  LineChart,
+  PieChart as PieChartIcon
 } from 'lucide-react';
 
-interface ReportData {
+interface AnalyticsData {
   id: string;
   title: string;
-  description: string;
-  type: 'reservations' | 'revenue' | 'occupancy' | 'clients' | 'hotels';
+  value: string | number;
+  change?: number;
+  changeType?: 'increase' | 'decrease' | 'neutral';
   period: string;
-  generatedAt: string;
-  status: 'ready' | 'generating' | 'error';
-  format: 'pdf' | 'excel';
+  data?: any[];
 }
 
-interface ReportTemplate {
-  id: string;
-  name: string;
-  description: string;
-  icon: React.ReactNode;
-  color: string;
-  bgColor: string;
+interface ChartData {
+  labels: string[];
+  datasets: {
+    label: string;
+    data: number[];
+    borderColor?: string;
+    backgroundColor?: string;
+  }[];
 }
 
 interface ReportsPageProps {
@@ -56,938 +61,345 @@ interface ReportsPageProps {
 }
 
 export default function ReportsPage({ hotels = [], selectedHotelId }: ReportsPageProps) {
-  const [activeTab, setActiveTab] = useState<'rapports' | 'analyses' | 'graphiques'>('rapports');
-  const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'quarter' | 'year'>('month');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'occupation' | 'reservations' | 'revenus' | 'operateurs'>('dashboard');
+  const [selectedPeriod, setSelectedPeriod] = useState<'today' | 'week' | 'month' | 'quarter' | 'year'>('today');
+  const [comparePeriod, setComparePeriod] = useState<string>('31 juil. 2025');
   const [selectedHotel, setSelectedHotel] = useState<string>(selectedHotelId ? selectedHotelId.toString() : 'all');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [showCharts, setShowCharts] = useState(false);
-  const [selectedChartType, setSelectedChartType] = useState<'reservations' | 'revenue' | 'occupancy' | 'clients' | 'hotels'>('reservations');
-  const [reports, setReports] = useState<ReportData[]>([
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['dashboard']));
+  const [selectedMetrics, setSelectedMetrics] = useState<string[]>(['taux_occupation', 'reservations_actives', 'revenus_jour', 'chambres_disponibles']);
+
+  // Données simulées pour les métriques PMS
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData[]>([
     {
-      id: '1',
-      title: 'Rapport mensuel des réservations',
-      description: 'Analyse complète des réservations du mois de janvier 2024',
-      type: 'reservations',
-      period: 'Janvier 2024',
-      generatedAt: '2024-01-25 14:30',
-      status: 'ready',
-      format: 'pdf'
+      id: 'taux_occupation',
+      title: 'Taux d\'occupation',
+      value: '78 %',
+      change: 5.2,
+      changeType: 'increase',
+      period: 'Aujourd\'hui'
     },
     {
-      id: '2',
-      title: 'Analyse des revenus Q4 2023',
-      description: 'Rapport détaillé des revenus du 4ème trimestre 2023',
-      type: 'revenue',
-      period: 'Q4 2023',
-      generatedAt: '2024-01-20 09:15',
-      status: 'ready',
-      format: 'excel'
+      id: 'reservations_actives',
+      title: 'Réservations actives',
+      value: '156',
+      change: -2.1,
+      changeType: 'decrease',
+      period: 'Aujourd\'hui'
     },
     {
-      id: '3',
-      title: 'Taux d\'occupation par établissement',
-      description: 'Comparaison des taux d\'occupation entre établissements',
-      type: 'occupancy',
-      period: 'Décembre 2023',
-      generatedAt: '2024-01-15 16:45',
-      status: 'ready',
-      format: 'pdf'
+      id: 'revenus_jour',
+      title: 'Revenus du jour',
+      value: '12 450 €',
+      change: 8.7,
+      changeType: 'increase',
+      period: 'Aujourd\'hui'
+    },
+    {
+      id: 'chambres_disponibles',
+      title: 'Chambres disponibles',
+      value: '23',
+      change: 12.5,
+      changeType: 'increase',
+      period: 'Aujourd\'hui'
     }
   ]);
 
-  const reportTemplates: ReportTemplate[] = [
-    {
-      id: 'reservations',
-      name: 'Rapport des Réservations',
-      description: 'Analyse détaillée des réservations avec statistiques',
-      icon: <Calendar className="h-6 w-6" />,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50'
-    },
-    {
-      id: 'revenue',
-      name: 'Rapport Financier',
-      description: 'Analyse des revenus et rentabilité',
-      icon: <Euro className="h-6 w-6" />,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50'
-    },
-    {
-      id: 'occupancy',
-      name: 'Taux d\'Occupation',
-      description: 'Statistiques d\'occupation par établissement',
-      icon: <BarChart3 className="h-6 w-6" />,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-50'
-    },
-    {
-      id: 'clients',
-      name: 'Analyse Clients',
-      description: 'Profil et comportement des clients',
-      icon: <Users className="h-6 w-6" />,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50'
-    },
-    {
-      id: 'hotels',
-      name: 'Performance Hôtels',
-      description: 'Comparaison des performances par établissement',
-      icon: <Building2 className="h-6 w-6" />,
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-50'
+  // Données pour les graphiques
+  const [chartData, setChartData] = useState<ChartData>({
+    labels: ['00 h', '02 h', '04 h', '06 h', '08 h', '10 h', '12 h', '14 h', '16 h', '18 h', '20 h', '22 h'],
+    datasets: [
+      {
+        label: '1 août 2025',
+        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        borderColor: '#3B82F6',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)'
+      },
+      {
+        label: '31 juil. 2025',
+        data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        borderColor: '#9CA3AF',
+        backgroundColor: 'rgba(156, 163, 175, 0.1)'
+      }
+    ]
+  });
+
+  // Sections de navigation adaptées au PMS
+  const navigationSections = {
+    occupation: [
+      { id: 'taux_occupation_temps', label: 'Taux d\'occupation dans le temps' },
+      { id: 'occupation_par_hotel', label: 'Occupation par établissement' },
+      { id: 'occupation_par_type', label: 'Occupation par type de chambre' },
+      { id: 'previsions_occupation', label: 'Prévisions d\'occupation' }
+    ],
+    reservations: [
+      { id: 'reservations_temps', label: 'Réservations dans le temps' },
+      { id: 'reservations_par_statut', label: 'Réservations par statut' },
+      { id: 'reservations_par_operateur', label: 'Réservations par opérateur' },
+      { id: 'duree_sejour_moyenne', label: 'Durée de séjour moyenne' },
+      { id: 'taux_annulation', label: 'Taux d\'annulation' },
+      { id: 'reservations_urgentes', label: 'Réservations urgentes' },
+      { id: 'prolongations', label: 'Prolongations de séjour' },
+      { id: 'fins_prise_charge', label: 'Fins de prise en charge' }
+    ],
+    revenus: [
+      { id: 'revenus_temps', label: 'Revenus dans le temps' },
+      { id: 'revenus_par_hotel', label: 'Revenus par établissement' },
+      { id: 'revenus_par_type', label: 'Revenus par type de chambre' },
+      { id: 'prix_moyen_nuit', label: 'Prix moyen par nuit' },
+      { id: 'conventions_prix', label: 'Conventions de prix' },
+      { id: 'facturation', label: 'Facturation et paiements' }
+    ],
+    operateurs: [
+      { id: 'operateurs_actifs', label: 'Opérateurs sociaux actifs' },
+      { id: 'reservations_par_operateur', label: 'Réservations par opérateur' },
+      { id: 'zones_intervention', label: 'Zones d\'intervention' },
+      { id: 'specialites', label: 'Spécialités des opérateurs' }
+    ]
+  };
+
+  const toggleSection = (section: string) => {
+    const newExpanded = new Set(expandedSections);
+    if (newExpanded.has(section)) {
+      newExpanded.delete(section);
+    } else {
+      newExpanded.add(section);
     }
-  ];
+    setExpandedSections(newExpanded);
+  };
 
-  // Utiliser les hôtels passés en props ou une liste par défaut
-  const availableHotels = hotels.length > 0 ? hotels : [
-    { id: 1, nom: 'Hôtel Central' },
-    { id: 2, nom: 'Résidence du Port' },
-    { id: 3, nom: 'Château des Alpes' },
-    { id: 4, nom: 'Auberge Provençale' },
-    { id: 5, nom: 'Hôtel des Arts' }
-  ];
-
-  const generateReport = async (templateId: string, format: 'pdf' | 'excel') => {
-    setIsGenerating(true);
+  const exportData = (format: 'csv' | 'excel' | 'pdf') => {
+    const data = {
+      period: selectedPeriod,
+      comparePeriod,
+      metrics: analyticsData,
+      chartData,
+      // Données spécifiques au PMS
+      pmsData: {
+        hotels: hotels,
+        selectedHotel: selectedHotel,
+        occupationData: {
+          tauxOccupation: analyticsData.find(m => m.id === 'taux_occupation')?.value,
+          chambresDisponibles: analyticsData.find(m => m.id === 'chambres_disponibles')?.value,
+          reservationsActives: analyticsData.find(m => m.id === 'reservations_actives')?.value
+        },
+        revenueData: {
+          revenusJour: analyticsData.find(m => m.id === 'revenus_jour')?.value,
+          periode: selectedPeriod
+        }
+      }
+    };
     
-    try {
-      if (format === 'pdf') {
-        const generator = new ReportGenerator();
-        const reportData = {
-          title: `${reportTemplates.find(t => t.id === templateId)?.name}`,
-          period: selectedPeriod,
-          generatedAt: new Date().toLocaleString('fr-FR'),
-          type: templateId,
-          data: sampleData[templateId as keyof typeof sampleData] || []
-        };
-        
-        const pdfUrl = generator.generateReport(templateId, reportData);
-        
-        // Créer un lien de téléchargement
-        const link = document.createElement('a');
-        link.href = pdfUrl;
-        link.download = `${reportData.title}_${selectedPeriod}.pdf`;
-        link.click();
-      }
-      
-      // Simulation pour Excel (à implémenter plus tard)
-      if (format === 'excel') {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-      
-      const newReport: ReportData = {
-        id: Date.now().toString(),
-        title: `${reportTemplates.find(t => t.id === templateId)?.name} - ${selectedPeriod}`,
-        description: `Rapport généré pour la période ${selectedPeriod}`,
-        type: templateId as any,
-        period: selectedPeriod,
-        generatedAt: new Date().toLocaleString('fr-FR'),
-        status: 'ready',
-        format
-      };
-      
-      setReports(prev => [newReport, ...prev]);
-    } catch (error) {
-      console.error('Erreur lors de la génération du rapport:', error);
-    } finally {
-      setIsGenerating(false);
-    }
+    // Simulation d'export avec données PMS
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `analyse_pms_${selectedPeriod}_${format}.${format}`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
-  const downloadReport = (report: ReportData) => {
-    // Simulation de téléchargement
-    const link = document.createElement('a');
-    link.href = `data:text/${report.format};charset=utf-8,${encodeURIComponent('Contenu du rapport')}`;
-    link.download = `${report.title}.${report.format}`;
-    link.click();
-  };
+  const renderMetricCard = (metric: AnalyticsData) => (
+    <Card key={metric.id} className="relative">
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm font-medium text-gray-600">{metric.title}</CardTitle>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold text-gray-900">{metric.value}</div>
+        {metric.change !== undefined && (
+          <div className={`text-sm ${metric.changeType === 'increase' ? 'text-green-600' : metric.changeType === 'decrease' ? 'text-red-600' : 'text-gray-500'}`}>
+            {metric.change > 0 ? '+' : ''}{metric.change}% vs {comparePeriod}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
 
-  const deleteReport = (reportId: string) => {
-    setReports(prev => prev.filter(r => r.id !== reportId));
-  };
+  const renderChart = (title: string, type: 'line' | 'bar' | 'pie') => (
+    <Card className="relative">
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm font-medium">{title}</CardTitle>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
+          <div className="text-center">
+            {type === 'line' && <LineChart className="h-12 w-12 text-gray-400 mx-auto mb-2" />}
+            {type === 'bar' && <BarChart className="h-12 w-12 text-gray-400 mx-auto mb-2" />}
+            {type === 'pie' && <PieChartIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />}
+            <p className="text-gray-500">Graphique {title}</p>
+            <p className="text-sm text-gray-400">Données de comparaison disponibles</p>
+          </div>
+        </div>
+        <div className="flex justify-center mt-4 space-x-4">
+          <div className="flex items-center">
+            <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+            <span className="text-sm text-gray-600">1 août 2025</span>
+          </div>
+          <div className="flex items-center">
+            <div className="w-3 h-3 bg-gray-400 rounded-full mr-2"></div>
+            <span className="text-sm text-gray-600">31 juil. 2025</span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderDataCard = (title: string, data: any[] = []) => (
+    <Card className="relative">
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm font-medium">{title}</CardTitle>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {data.length > 0 ? (
+          <div className="space-y-2">
+            {data.map((item, index) => (
+              <div key={index} className="flex justify-between text-sm">
+                <span className="text-gray-600">{item.label}</span>
+                <span className="font-medium">{item.value}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <Database className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+            <p className="text-gray-500">Aucune donnée trouvée pour cette plage de dates</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
 
   return (
-    <div className="space-y-6">
-      {/* En-tête */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Rapports et Analyses</h2>
-          <p className="text-gray-600">Générez et consultez vos rapports détaillés</p>
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar de navigation */}
+      <div className="w-64 bg-white border-r border-gray-200 overflow-y-auto">
+        <div className="p-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Rechercher"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => setShowCharts(!showCharts)}
-          >
-            <Eye className="h-4 w-4 mr-2" />
-            {showCharts ? 'Masquer' : 'Afficher'} les graphiques
-          </Button>
-          <Button variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Actualiser
-          </Button>
-          <Button variant="outline" size="sm">
-            <Mail className="h-4 w-4 mr-2" />
-            Envoyer par email
-          </Button>
-        </div>
-      </div>
 
-      {/* Navigation par onglets */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
-          <button
-            onClick={() => setActiveTab('rapports')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'rapports'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            <FileText className="h-4 w-4 inline mr-2" />
-            Rapports
-          </button>
-          <button
-            onClick={() => setActiveTab('analyses')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'analyses'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            <BarChart3 className="h-4 w-4 inline mr-2" />
-            Analyses
-          </button>
-          <button
-            onClick={() => setActiveTab('graphiques')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'graphiques'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            <PieChart className="h-4 w-4 inline mr-2" />
-            Graphiques
-          </button>
+        <nav className="px-4 pb-4">
+          {Object.entries(navigationSections).map(([sectionKey, items]) => (
+            <div key={sectionKey} className="mb-4">
+              <button
+                onClick={() => toggleSection(sectionKey)}
+                className="flex items-center justify-between w-full text-left text-sm font-medium text-gray-700 hover:text-gray-900 py-2"
+              >
+                <span className="capitalize">{sectionKey}</span>
+                {expandedSections.has(sectionKey) ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </button>
+              
+              {expandedSections.has(sectionKey) && (
+                <div className="ml-4 space-y-1">
+                  {items.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveTab(sectionKey as any)}
+                      className="block w-full text-left text-sm text-gray-600 hover:text-gray-900 py-1 px-2 rounded hover:bg-gray-100"
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
         </nav>
       </div>
 
-      {/* Contenu spécifique à chaque onglet */}
-      {activeTab === 'rapports' && (
-        <>
-          {/* Filtres pour les rapports */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Filter className="h-5 w-5 mr-2" />
-                Filtres de génération
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Période
-                  </label>
-                  <select 
-                    value={selectedPeriod}
-                    onChange={(e) => setSelectedPeriod(e.target.value as any)}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="week">Cette semaine</option>
-                    <option value="month">Ce mois</option>
-                    <option value="quarter">Ce trimestre</option>
-                    <option value="year">Cette année</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Établissement
-                  </label>
-                  <select 
-                    value={selectedHotel}
-                    onChange={(e) => setSelectedHotel(e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="all">Tous les établissements</option>
-                    {availableHotels.map(hotel => (
-                      <option key={hotel.id} value={hotel.id}>
-                        {hotel.nom}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div className="flex items-end">
-                  <Button 
-                    onClick={() => generateReport('reservations', 'pdf')}
-                    disabled={isGenerating}
-                    className="w-full"
-                  >
-                    {isGenerating ? (
-                      <>
-                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                        Génération...
-                      </>
-                    ) : (
-                      <>
-                        <FileText className="h-4 w-4 mr-2" />
-                        Générer un rapport
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Graphiques interactifs */}
-          {showCharts && (
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Graphiques interactifs</h3>
-                <div className="flex space-x-2">
-                  <select 
-                    value={selectedChartType}
-                    onChange={(e) => setSelectedChartType(e.target.value as any)}
-                    className="p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="reservations">Réservations</option>
-                    <option value="revenue">Revenus</option>
-                    <option value="occupancy">Occupation</option>
-                    <option value="clients">Clients</option>
-                    <option value="hotels">Hôtels</option>
-                  </select>
-                </div>
-              </div>
-              <ReportCharts type={selectedChartType} period={selectedPeriod} />
+      {/* Contenu principal */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-6">
+          {/* En-tête */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-3">
+              <BarChart3 className="h-6 w-6 text-blue-600" />
+              <h1 className="text-2xl font-bold text-gray-900">Analyses de données</h1>
             </div>
-          )}
-
-          {/* Templates de rapports */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Types de rapports disponibles</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {reportTemplates.map((template) => (
-                <Card key={template.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader>
-                    <div className="flex items-center space-x-3">
-                      <div className={`p-2 rounded-lg ${template.bgColor}`}>
-                        <div className={template.color}>
-                          {template.icon}
-                        </div>
-                      </div>
-                      <div>
-                        <CardTitle className="text-base">{template.name}</CardTitle>
-                        <p className="text-sm text-gray-600">{template.description}</p>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex space-x-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => generateReport(template.id, 'pdf')}
-                        disabled={isGenerating}
-                        className="flex-1"
-                      >
-                        <FileText className="h-4 w-4 mr-1" />
-                        PDF
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => generateReport(template.id, 'excel')}
-                        disabled={isGenerating}
-                        className="flex-1"
-                      >
-                        <Download className="h-4 w-4 mr-1" />
-                        Excel
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+            
+            <div className="flex items-center space-x-3">
+              <Button
+                variant={selectedPeriod === 'today' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedPeriod('today')}
+              >
+                Aujourd'hui
+              </Button>
+              <Button variant="outline" size="sm">
+                Comparer à : {comparePeriod}
+              </Button>
+              <Button variant="outline" size="sm">
+                Réinitialiser par défaut
+              </Button>
             </div>
           </div>
-        </>
-      )}
 
-      {activeTab === 'analyses' && (
-        <>
-          {/* Filtres pour les analyses */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Filter className="h-5 w-5 mr-2" />
-                Paramètres d'analyse
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Période d'analyse
-                  </label>
-                  <select 
-                    value={selectedPeriod}
-                    onChange={(e) => setSelectedPeriod(e.target.value as any)}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="week">Cette semaine</option>
-                    <option value="month">Ce mois</option>
-                    <option value="quarter">Ce trimestre</option>
-                    <option value="year">Cette année</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Établissement
-                  </label>
-                  <select 
-                    value={selectedHotel}
-                    onChange={(e) => setSelectedHotel(e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="all">Tous les établissements</option>
-                    {availableHotels.map(hotel => (
-                      <option key={hotel.id} value={hotel.id}>
-                        {hotel.nom}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div className="flex items-end">
-                  <Button 
-                    onClick={() => {}} // Fonction d'analyse à implémenter
-                    className="w-full"
-                  >
-                    <BarChart3 className="h-4 w-4 mr-2" />
-                    Lancer l'analyse
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Graphiques d'analyse avancée */}
-          {showCharts && (
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Analyses avancées</h3>
-                <div className="flex space-x-2">
-                  <select 
-                    value={selectedChartType}
-                    onChange={(e) => setSelectedChartType(e.target.value as any)}
-                    className="p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="reservations">Tendances</option>
-                    <option value="revenue">Comparaisons</option>
-                    <option value="occupancy">Prévisions</option>
-                    <option value="clients">Segmentation</option>
-                    <option value="hotels">Performance</option>
-                  </select>
-                </div>
-              </div>
-              <ReportCharts type={selectedChartType} period={selectedPeriod} />
-            </div>
-          )}
-
-          {/* Types d'analyses disponibles */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Types d'analyses disponibles</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[
-                {
-                  id: 'trends',
-                  name: 'Analyse des Tendances',
-                  description: 'Évolution des indicateurs clés dans le temps',
-                  icon: <TrendingUp className="h-6 w-6" />,
-                  color: 'text-blue-600',
-                  bgColor: 'bg-blue-50'
-                },
-                {
-                  id: 'comparison',
-                  name: 'Analyse Comparative',
-                  description: 'Comparaison entre établissements et périodes',
-                  icon: <BarChart3 className="h-6 w-6" />,
-                  color: 'text-green-600',
-                  bgColor: 'bg-green-50'
-                },
-                {
-                  id: 'prediction',
-                  name: 'Prévisions',
-                  description: 'Modèles prédictifs pour les réservations futures',
-                  icon: <Target className="h-6 w-6" />,
-                  color: 'text-purple-600',
-                  bgColor: 'bg-purple-50'
-                },
-                {
-                  id: 'segmentation',
-                  name: 'Segmentation Clients',
-                  description: 'Analyse des profils et comportements clients',
-                  icon: <Users className="h-6 w-6" />,
-                  color: 'text-orange-600',
-                  bgColor: 'bg-orange-50'
-                },
-                {
-                  id: 'performance',
-                  name: 'Analyse de Performance',
-                  description: 'Évaluation des performances par métrique',
-                  icon: <Award className="h-6 w-6" />,
-                  color: 'text-indigo-600',
-                  bgColor: 'bg-indigo-50'
-                },
-                {
-                  id: 'anomalies',
-                  name: 'Détection d\'Anomalies',
-                  description: 'Identification des patterns inhabituels',
-                  icon: <Activity className="h-6 w-6" />,
-                  color: 'text-red-600',
-                  bgColor: 'bg-red-50'
-                }
-              ].map((analysis) => (
-                <Card key={analysis.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader>
-                    <div className="flex items-center space-x-3">
-                      <div className={`p-2 rounded-lg ${analysis.bgColor}`}>
-                        <div className={analysis.color}>
-                          {analysis.icon}
-                        </div>
-                      </div>
-                      <div>
-                        <CardTitle className="text-base">{analysis.name}</CardTitle>
-                        <p className="text-sm text-gray-600">{analysis.description}</p>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => {}} // Fonction d'analyse à implémenter
-                      className="w-full"
-                    >
-                      <BarChart3 className="h-4 w-4 mr-1" />
-                      Lancer l'analyse
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
-
-      {activeTab === 'graphiques' && (
-        <>
-          {/* Graphiques interactifs dédiés */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Visualisations graphiques</h3>
-              <div className="flex space-x-2">
-                <select 
-                  value={selectedChartType}
-                  onChange={(e) => setSelectedChartType(e.target.value as any)}
-                  className="p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="reservations">Réservations</option>
-                  <option value="revenue">Revenus</option>
-                  <option value="occupancy">Occupation</option>
-                  <option value="clients">Clients</option>
-                  <option value="hotels">Hôtels</option>
-                </select>
-              </div>
-            </div>
-            <ReportCharts type={selectedChartType} period={selectedPeriod} />
+          {/* Métriques principales */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {analyticsData.map(renderMetricCard)}
           </div>
 
-          {/* Outils de graphiques */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Outils de visualisation</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[
-                {
-                  id: 'export',
-                  name: 'Exporter Graphique',
-                  description: 'Sauvegarder les graphiques en PNG, SVG ou PDF',
-                  icon: <Download className="h-6 w-6" />,
-                  color: 'text-blue-600',
-                  bgColor: 'bg-blue-50'
-                },
-                {
-                  id: 'customize',
-                  name: 'Personnaliser',
-                  description: 'Modifier les couleurs, styles et options',
-                  icon: <Settings className="h-6 w-6" />,
-                  color: 'text-green-600',
-                  bgColor: 'bg-green-50'
-                },
-                {
-                  id: 'share',
-                  name: 'Partager',
-                  description: 'Partager les graphiques par email ou lien',
-                  icon: <Mail className="h-6 w-6" />,
-                  color: 'text-purple-600',
-                  bgColor: 'bg-purple-50'
-                },
-                {
-                  id: 'embed',
-                  name: 'Intégrer',
-                  description: 'Code d\'intégration pour sites web',
-                  icon: <Code className="h-6 w-6" />,
-                  color: 'text-orange-600',
-                  bgColor: 'bg-orange-50'
-                },
-                {
-                  id: 'schedule',
-                  name: 'Planifier',
-                  description: 'Génération automatique de rapports',
-                  icon: <Clock className="h-6 w-6" />,
-                  color: 'text-indigo-600',
-                  bgColor: 'bg-indigo-50'
-                },
-                {
-                  id: 'compare',
-                  name: 'Comparer',
-                  description: 'Comparaison de graphiques côte à côte',
-                  icon: <BarChart3 className="h-6 w-6" />,
-                  color: 'text-red-600',
-                  bgColor: 'bg-red-50'
-                }
-              ].map((tool) => (
-                <Card key={tool.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader>
-                    <div className="flex items-center space-x-3">
-                      <div className={`p-2 rounded-lg ${tool.bgColor}`}>
-                        <div className={tool.color}>
-                          {tool.icon}
-                        </div>
-                      </div>
-                      <div>
-                        <CardTitle className="text-base">{tool.name}</CardTitle>
-                        <p className="text-sm text-gray-600">{tool.description}</p>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => {}}
-                      className="w-full"
-                    >
-                      Utiliser
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+          {/* Graphiques et données PMS */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {renderChart('Taux d\'occupation dans le temps', 'line')}
+            {renderDataCard('Répartition des réservations par statut', [
+              { label: 'Confirmées', value: '89' },
+              { label: 'En cours', value: '45' },
+              { label: 'Terminées', value: '156' },
+              { label: 'Annulées', value: '12' },
+              { label: 'En attente', value: '23' }
+            ])}
+            {renderDataCard('Occupation par établissement')}
+            {renderChart('Revenus dans le temps', 'line')}
+            {renderDataCard('Répartition par type de chambre', [
+              { label: 'Simple', value: '45 %' },
+              { label: 'Double', value: '32 %' },
+              { label: 'Triple', value: '15 %' },
+              { label: 'Adaptée', value: '8 %' }
+            ])}
           </div>
-        </>
-      )}
 
-      {/* Contenu spécifique à chaque onglet - Rapports générés et Analyses récentes */}
-      {activeTab === 'rapports' && (
-        <>
-          {/* Rapports générés */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Rapports récents</h3>
-            <div className="space-y-4">
-              {reports.map((report) => (
-                <Card key={report.id}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className={`p-2 rounded-lg ${
-                          report.type === 'reservations' ? 'bg-blue-50' :
-                          report.type === 'revenue' ? 'bg-green-50' :
-                          report.type === 'occupancy' ? 'bg-orange-50' :
-                          report.type === 'clients' ? 'bg-purple-50' :
-                          'bg-indigo-50'
-                        }`}>
-                          {report.type === 'reservations' && <Calendar className="h-5 w-5 text-blue-600" />}
-                          {report.type === 'revenue' && <Euro className="h-5 w-5 text-green-600" />}
-                          {report.type === 'occupancy' && <BarChart3 className="h-5 w-5 text-orange-600" />}
-                          {report.type === 'clients' && <Users className="h-5 w-5 text-purple-600" />}
-                          {report.type === 'hotels' && <Building2 className="h-5 w-5 text-indigo-600" />}
-                        </div>
-                        
-                        <div>
-                          <h4 className="font-medium text-gray-900">{report.title}</h4>
-                          <p className="text-sm text-gray-600">{report.description}</p>
-                          <div className="flex items-center space-x-4 mt-1">
-                            <span className="text-xs text-gray-500">Période: {report.period}</span>
-                            <span className="text-xs text-gray-500">Généré: {report.generatedAt}</span>
-                            <Badge variant="secondary" className="text-xs">
-                              {report.format.toUpperCase()}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => downloadReport(report)}
-                        >
-                          <Download className="h-4 w-4 mr-1" />
-                          Télécharger
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => window.print()}
-                        >
-                          <Printer className="h-4 w-4 mr-1" />
-                          Imprimer
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => deleteReport(report.id)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          Supprimer
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+          {/* Boutons d'export */}
+          <div className="mt-6 flex justify-end space-x-3">
+            <Button variant="outline" onClick={() => exportData('csv')}>
+              <Download className="h-4 w-4 mr-2" />
+              Exporter CSV
+            </Button>
+            <Button variant="outline" onClick={() => exportData('excel')}>
+              <Download className="h-4 w-4 mr-2" />
+              Exporter Excel
+            </Button>
+            <Button variant="outline" onClick={() => exportData('pdf')}>
+              <Download className="h-4 w-4 mr-2" />
+              Exporter PDF
+            </Button>
           </div>
-        </>
-      )}
-
-      {activeTab === 'analyses' && (
-        <>
-          {/* Analyses récentes */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Analyses récentes</h3>
-            <div className="space-y-4">
-              {[
-                {
-                  id: '1',
-                  title: 'Analyse des tendances - Janvier 2024',
-                  description: 'Évolution des réservations et revenus sur 6 mois',
-                  type: 'trends',
-                  period: 'Janvier 2024',
-                  generatedAt: '2024-01-25 14:30',
-                  status: 'completed'
-                },
-                {
-                  id: '2',
-                  title: 'Comparaison établissements - Q4 2023',
-                  description: 'Analyse comparative des performances par hôtel',
-                  type: 'comparison',
-                  period: 'Q4 2023',
-                  generatedAt: '2024-01-20 09:15',
-                  status: 'completed'
-                },
-                {
-                  id: '3',
-                  title: 'Prévisions réservations - Février 2024',
-                  description: 'Modèle prédictif pour les réservations du mois prochain',
-                  type: 'prediction',
-                  period: 'Février 2024',
-                  generatedAt: '2024-01-22 16:45',
-                  status: 'in_progress'
-                }
-              ].map((analysis) => (
-                <Card key={analysis.id}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className={`p-2 rounded-lg ${
-                          analysis.type === 'trends' ? 'bg-blue-50' :
-                          analysis.type === 'comparison' ? 'bg-green-50' :
-                          analysis.type === 'prediction' ? 'bg-purple-50' :
-                          analysis.type === 'segmentation' ? 'bg-orange-50' :
-                          analysis.type === 'performance' ? 'bg-indigo-50' :
-                          'bg-red-50'
-                        }`}>
-                          {analysis.type === 'trends' && <TrendingUp className="h-5 w-5 text-blue-600" />}
-                          {analysis.type === 'comparison' && <BarChart3 className="h-5 w-5 text-green-600" />}
-                          {analysis.type === 'prediction' && <Target className="h-5 w-5 text-purple-600" />}
-                          {analysis.type === 'segmentation' && <Users className="h-5 w-5 text-orange-600" />}
-                          {analysis.type === 'performance' && <Award className="h-5 w-5 text-indigo-600" />}
-                          {analysis.type === 'anomalies' && <Activity className="h-5 w-5 text-red-600" />}
-                        </div>
-                        
-                        <div>
-                          <h4 className="font-medium text-gray-900">{analysis.title}</h4>
-                          <p className="text-sm text-gray-600">{analysis.description}</p>
-                          <div className="flex items-center space-x-4 mt-1">
-                            <span className="text-xs text-gray-500">Période: {analysis.period}</span>
-                            <span className="text-xs text-gray-500">Généré: {analysis.generatedAt}</span>
-                            <Badge variant={analysis.status === 'completed' ? 'secondary' : 'outline'} className="text-xs">
-                              {analysis.status === 'completed' ? 'Terminé' : 'En cours'}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {}}
-                        >
-                          <Download className="h-4 w-4 mr-1" />
-                          Exporter
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {}}
-                        >
-                          <BarChart3 className="h-4 w-4 mr-1" />
-                          Visualiser
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => {}}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          Supprimer
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Statistiques rapides adaptées à chaque onglet */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {activeTab === 'rapports' ? (
-          <>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-blue-50 rounded-lg">
-                    <FileText className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Rapports générés</p>
-                    <p className="text-2xl font-bold text-gray-900">{reports.length}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-green-50 rounded-lg">
-                    <Download className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Téléchargements</p>
-                    <p className="text-2xl font-bold text-gray-900">24</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-orange-50 rounded-lg">
-                    <Printer className="h-5 w-5 text-orange-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Impressions</p>
-                    <p className="text-2xl font-bold text-gray-900">18</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-purple-50 rounded-lg">
-                    <Mail className="h-5 w-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Envoyés par email</p>
-                    <p className="text-2xl font-bold text-gray-900">8</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </>
-        ) : (
-          <>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-blue-50 rounded-lg">
-                    <BarChart3 className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Analyses effectuées</p>
-                    <p className="text-2xl font-bold text-gray-900">15</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-green-50 rounded-lg">
-                    <TrendingUp className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Prévisions générées</p>
-                    <p className="text-2xl font-bold text-gray-900">7</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-orange-50 rounded-lg">
-                    <Target className="h-5 w-5 text-orange-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Précision moyenne</p>
-                    <p className="text-2xl font-bold text-gray-900">94%</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-purple-50 rounded-lg">
-                    <Activity className="h-5 w-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Anomalies détectées</p>
-                    <p className="text-2xl font-bold text-gray-900">3</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </>
-        )}
+        </div>
       </div>
     </div>
   );

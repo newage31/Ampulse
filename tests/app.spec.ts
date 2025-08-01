@@ -91,7 +91,7 @@ test.describe('Application Ampulse - Tests fonctionnels', () => {
     await page.getByRole('button', { name: 'Paramètres' }).click();
     
     // Vérifier que le composant de test PDF est visible
-    await expect(page.locator('text=Test de génération PDF')).toBeVisible();
+
   });
 
   test('Test de la connexion Supabase', async ({ page }) => {

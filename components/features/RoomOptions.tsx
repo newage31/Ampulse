@@ -378,7 +378,10 @@ export default function RoomOptions({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Options et suppléments</h2>
+        <div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Options et suppléments</h2>
+          <p className="text-gray-600">Gérez les options, suppléments et services disponibles</p>
+        </div>
         {!readOnly && (
           <Button onClick={handleAddOption} className="bg-blue-600 hover:bg-blue-700">
             <Plus className="h-4 w-4 mr-2" />

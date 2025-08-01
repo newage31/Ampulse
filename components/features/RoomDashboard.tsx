@@ -124,67 +124,7 @@ export default function RoomDashboard({ selectedHotel, onActionClick }: RoomDash
 
   return (
     <div className="space-y-6">
-      {/* Statistiques principales */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Building2 className="h-6 w-6 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Total chambres</p>
-                <p className="text-2xl font-bold text-gray-900">{roomStats.totalRooms}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Users className="h-6 w-6 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Chambres occupées</p>
-                <p className="text-2xl font-bold text-gray-900">{roomStats.occupiedRooms}</p>
-                <p className="text-sm text-green-600">+{roomStats.occupancyRate}% d'occupation</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Bed className="h-6 w-6 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Chambres disponibles</p>
-                <p className="text-2xl font-bold text-gray-900">{roomStats.availableRooms}</p>
-                <p className="text-sm text-purple-600">Libres maintenant</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <Euro className="h-6 w-6 text-orange-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Revenu moyen</p>
-                <p className="text-2xl font-bold text-gray-900">{roomStats.revenuePerRoom}€</p>
-                <p className="text-sm text-orange-600">Par chambre/jour</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Graphiques et Statistiques */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

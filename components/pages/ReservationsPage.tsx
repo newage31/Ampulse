@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react';
-import TopBar from '../layout/TopBar';
-import ReservationsDashboard from '../features/ReservationsDashboard';
 import ReservationsCalendar from '../features/ReservationsCalendar';
 import ReservationsTable from '../features/ReservationsTable';
 import ReservationsAvailability from '../features/ReservationsAvailability';
@@ -9,7 +7,6 @@ import { ProlongationModal, EndCareModal } from '../modals/Modals';
 import NewReservationModal from '../modals/NewReservationModal';
 
 import { 
-  LayoutDashboard, 
   CalendarDays, 
   Eye, 
   List,
@@ -24,6 +21,7 @@ interface ReservationsPageProps {
   templates: DocumentTemplate[];
   selectedHotel?: string; // Nom de l'hôtel sélectionné
   onReservationSelect?: (reservation: Reservation) => void;
+  activeSubTab?: string; // Sous-onglet actif
 }
 
 // Interface étendue pour les réservations avec détails
@@ -156,9 +154,22 @@ export default function ReservationsPage({
   operateurs,
   templates,
   selectedHotel,
-  onReservationSelect 
+  onReservationSelect,
+  activeSubTab = 'reservations-disponibilite'
 }: ReservationsPageProps) {
-  const [activeTab, setActiveTab] = useState('reservations-dashboard');
+  const [activeTab, setActiveTab] = useState(() => {
+    // Mapper les sous-onglets du menu principal vers les onglets internes
+    switch (activeSubTab) {
+      case 'reservations-disponibilite':
+        return 'reservations-availability';
+      case 'reservations-liste':
+        return 'reservations-all';
+      case 'reservations-calendrier':
+        return 'reservations-calendar';
+      default:
+        return 'reservations-availability';
+    }
+  });
   const [reservations, setReservations] = useState<ReservationWithDetails[]>([]);
   const [processus, setProcessus] = useState<ProcessusReservation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -178,6 +189,23 @@ export default function ReservationsPage({
     loadReservations();
     loadProcessus();
   }, []);
+
+  // Synchroniser l'onglet actif quand activeSubTab change
+  useEffect(() => {
+    switch (activeSubTab) {
+      case 'reservations-disponibilite':
+        setActiveTab('reservations-availability');
+        break;
+      case 'reservations-liste':
+        setActiveTab('reservations-all');
+        break;
+      case 'reservations-calendrier':
+        setActiveTab('reservations-calendar');
+        break;
+      default:
+        setActiveTab('reservations-availability');
+    }
+  }, [activeSubTab]);
 
   const loadReservations = async () => {
     try {
@@ -290,29 +318,7 @@ export default function ReservationsPage({
     }
   };
 
-  const topBarItems = [
-    {
-      id: 'reservations-dashboard',
-      label: 'Tableau de bord',
-      icon: <LayoutDashboard className="h-4 w-4" />
-    },
-    {
-      id: 'reservations-all',
-      label: 'Liste des réservations',
-      icon: <List className="h-4 w-4" />,
-      badge: reservations.length
-    },
-    {
-      id: 'reservations-availability',
-      label: 'Disponibilité',
-      icon: <CheckCircle className="h-4 w-4" />
-    },
-    {
-      id: 'reservations-calendar',
-      label: 'Calendrier',
-      icon: <CalendarDays className="h-4 w-4" />
-    }
-  ];
+
 
   const renderContent = () => {
     if (loading) {
@@ -366,23 +372,6 @@ export default function ReservationsPage({
 
   const renderMainContent = () => {
     switch (activeTab) {
-      case 'reservations-dashboard':
-        return (
-          <ReservationsDashboard 
-            reservations={reservations}
-            hotels={hotels}
-            operateurs={operateurs}
-            onReservationSelect={handleReservationSelect}
-            onNewReservation={handleNewReservation}
-            onEditReservation={handleEditReservation}
-            onDeleteReservation={handleDeleteReservation}
-            onConfirmReservation={handleConfirmReservation}
-            onCancelReservation={handleCancelReservation}
-            onViewDetails={handleViewDetails}
-            onGenerateReport={handleGenerateReport}
-            onCheckAvailability={handleCheckAvailability}
-          />
-        );
       case 'reservations-calendar':
         return <ReservationsCalendar reservations={reservations} hotels={hotels} selectedHotel={selectedHotel} />;
 
@@ -646,17 +635,8 @@ export default function ReservationsPage({
   }
 
   return (
-    <div>
-      <TopBar
-        items={topBarItems}
-        activeItem={activeTab}
-        onItemClick={setActiveTab}
-        title="Réservations"
-        description=""
-      />
-      <div className="px-6">
-        {renderContent()}
-      </div>
+    <div className="px-6">
+      {renderContent()}
 
       {/* Modal de prolongation */}
       {selectedReservationForProlongation && (

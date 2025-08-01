@@ -1,19 +1,20 @@
 import { useState } from 'react';
 import TopBar from '../layout/TopBar';
-import Parametres from '../features/Parametres';
-import ImprovedUsersManagement from '../features/ImprovedUsersManagement';
 import { 
   Settings, 
-  Users, 
-  MessageSquare, 
-  BarChart3,
-  Bell,
   Building2,
-  Shield,
-  FileText
+  Plus,
+  X,
+  Users,
+  FileText,
+  Bed,
+  UserCheck
 } from 'lucide-react';
 import { User, Hotel, DocumentTemplate } from '../../types';
+import UsersManagement from '../features/UsersManagement';
 import DocumentsManagement from '../features/DocumentsManagement';
+import ChambresPage from '../pages/ChambresPage';
+import OperateursTable from '../features/OperateursTable';
 
 interface ParametresPageProps {
   features: {
@@ -26,8 +27,10 @@ interface ParametresPageProps {
   hotels?: Array<{ id: number; nom: string }>;
   users?: User[];
   templates?: DocumentTemplate[];
+  operateurs?: any[];
   onFeatureToggle: (feature: string, enabled: boolean) => void;
   onHotelSelect: (hotelId: number | null) => void;
+  onHotelCreate?: (hotel: Omit<Hotel, 'id'>) => void;
   onSaveSettings: () => void;
   onResetSettings: () => void;
   onUserCreate?: (user: Omit<User, 'id'>) => void;
@@ -38,6 +41,7 @@ interface ParametresPageProps {
   onTemplateUpdate?: (id: number, updates: Partial<DocumentTemplate>) => void;
   onTemplateDelete?: (id: number) => void;
   onTemplateDuplicate?: (id: number) => void;
+  onOperateurSelect?: (operateur: any) => void;
 }
 
 export default function ParametresPage({
@@ -46,8 +50,10 @@ export default function ParametresPage({
   hotels,
   users,
   templates,
+  operateurs,
   onFeatureToggle,
   onHotelSelect,
+  onHotelCreate,
   onSaveSettings,
   onResetSettings,
   onUserCreate,
@@ -57,9 +63,19 @@ export default function ParametresPage({
   onTemplateCreate,
   onTemplateUpdate,
   onTemplateDelete,
-  onTemplateDuplicate
+  onTemplateDuplicate,
+  onOperateurSelect
 }: ParametresPageProps) {
   const [activeTab, setActiveTab] = useState('general');
+  const [showAddHotelForm, setShowAddHotelForm] = useState(false);
+  const [newHotel, setNewHotel] = useState({
+    nom: '',
+    adresse: '',
+    telephone: '',
+    email: '',
+    ville: '',
+    codePostal: ''
+  });
 
   const topBarItems = [
     {
@@ -73,37 +89,53 @@ export default function ParametresPage({
       icon: <Building2 className="h-4 w-4" />
     },
     {
-      id: 'operateurs',
+      id: 'chambres',
+      label: 'Chambres',
+      icon: <Bed className="h-4 w-4" />
+    },
+    {
+      id: 'clients',
       label: 'Clients',
-      icon: <Users className="h-4 w-4" />,
-      badge: features.operateursSociaux ? 1 : 0
-    },
-
-    {
-      id: 'statistiques',
-      label: 'Statistiques',
-      icon: <BarChart3 className="h-4 w-4" />,
-      badge: features.statistiques ? 1 : 0
+      icon: <UserCheck className="h-4 w-4" />
     },
     {
-      id: 'notifications',
-      label: 'Notifications',
-      icon: <Bell className="h-4 w-4" />,
-      badge: features.notifications ? 1 : 0
-    },
-    {
-      id: 'users',
+      id: 'utilisateurs',
       label: 'Utilisateurs',
-      icon: <Shield className="h-4 w-4" />,
-      badge: users?.length ? users.length : 0
+      icon: <Users className="h-4 w-4" />
     },
     {
       id: 'documents',
       label: 'Documents',
-      icon: <FileText className="h-4 w-4" />,
-      badge: templates?.length ? templates.length : 0
+      icon: <FileText className="h-4 w-4" />
     }
   ];
+
+  const handleAddHotel = () => {
+    if (newHotel.nom.trim() && onHotelCreate) {
+      onHotelCreate(newHotel);
+      setNewHotel({
+        nom: '',
+        adresse: '',
+        telephone: '',
+        email: '',
+        ville: '',
+        codePostal: ''
+      });
+      setShowAddHotelForm(false);
+    }
+  };
+
+  const handleCancelAddHotel = () => {
+    setNewHotel({
+      nom: '',
+      adresse: '',
+      telephone: '',
+      email: '',
+      ville: '',
+      codePostal: ''
+    });
+    setShowAddHotelForm(false);
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -194,10 +226,131 @@ export default function ParametresPage({
       case 'etablissement':
         return (
           <div className="space-y-6">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Paramètres d'établissement</h2>
-              <p className="text-gray-600 mb-6">Configurez l'établissement sur lequel vous travaillez</p>
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Paramètres d'établissement</h2>
+                <p className="text-gray-600 mb-6">Configurez l'établissement sur lequel vous travaillez</p>
+              </div>
+              {!showAddHotelForm && (
+                <button
+                  onClick={() => setShowAddHotelForm(true)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Ajouter un établissement
+                </button>
+              )}
             </div>
+            
+            {showAddHotelForm && (
+              <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Nouvel établissement</h3>
+                  <button
+                    onClick={handleCancelAddHotel}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Nom de l'établissement *
+                    </label>
+                    <input
+                      type="text"
+                      value={newHotel.nom}
+                      onChange={(e) => setNewHotel(prev => ({ ...prev, nom: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Ex: Hôtel Central"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Téléphone
+                    </label>
+                    <input
+                      type="tel"
+                      value={newHotel.telephone}
+                      onChange={(e) => setNewHotel(prev => ({ ...prev, telephone: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="01 23 45 67 89"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      value={newHotel.email}
+                      onChange={(e) => setNewHotel(prev => ({ ...prev, email: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="contact@hotel.com"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Code postal
+                    </label>
+                    <input
+                      type="text"
+                      value={newHotel.codePostal}
+                      onChange={(e) => setNewHotel(prev => ({ ...prev, codePostal: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="75001"
+                    />
+                  </div>
+                  
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Adresse
+                    </label>
+                    <input
+                      type="text"
+                      value={newHotel.adresse}
+                      onChange={(e) => setNewHotel(prev => ({ ...prev, adresse: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="123 Rue de la Paix"
+                    />
+                  </div>
+                  
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Ville
+                    </label>
+                    <input
+                      type="text"
+                      value={newHotel.ville}
+                      onChange={(e) => setNewHotel(prev => ({ ...prev, ville: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Paris"
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex justify-end gap-3 mt-6">
+                  <button
+                    onClick={handleCancelAddHotel}
+                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={handleAddHotel}
+                    disabled={!newHotel.nom.trim()}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Ajouter l'établissement
+                  </button>
+                </div>
+              </div>
+            )}
             
             <div className="max-w-md">
               <div className="space-y-4">
@@ -232,194 +385,57 @@ export default function ParametresPage({
               </div>
             </div>
           </div>
-        );
-        
-      case 'operateurs':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Paramètres des clients</h2>
-              <p className="text-gray-600 mb-6">Configurez la gestion des différents types de clients</p>
-            </div>
-            
-            <div className="space-y-6">
-              <div className="p-4 border border-gray-200 rounded-lg">
-                <h3 className="font-semibold text-gray-800 mb-3">Statut de la fonctionnalité</h3>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-medium">Gestion des clients</div>
-                    <div className="text-sm text-gray-600">Associations, entreprises et particuliers</div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className={`px-3 py-1 rounded-full text-sm ${
-                      features.operateursSociaux ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {features.operateursSociaux ? 'Activé' : 'Désactivé'}
-                    </span>
-                    <button
-                      onClick={() => onFeatureToggle('operateursSociaux', !features.operateursSociaux)}
-                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                    >
-                      {features.operateursSociaux ? 'Désactiver' : 'Activer'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-              
-              {features.operateursSociaux && (
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-800">Configuration avancée</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 border border-gray-200 rounded-lg">
-                      <h4 className="font-medium mb-2">Organisations autorisées</h4>
-                      <p className="text-sm text-gray-600">Configurez les organisations qui peuvent créer des opérateurs</p>
-                    </div>
-                    <div className="p-4 border border-gray-200 rounded-lg">
-                      <h4 className="font-medium mb-2">Zones d'intervention</h4>
-                      <p className="text-sm text-gray-600">Définissez les zones géographiques d'intervention</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        );
-        
-
-        
-      case 'statistiques':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Paramètres des statistiques</h2>
-              <p className="text-gray-600 mb-6">Configurez les tableaux de bord et rapports</p>
-            </div>
-            
-            <div className="space-y-6">
-              <div className="p-4 border border-gray-200 rounded-lg">
-                <h3 className="font-semibold text-gray-800 mb-3">Statut de la fonctionnalité</h3>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-medium">Statistiques avancées</div>
-                    <div className="text-sm text-gray-600">Tableaux de bord et rapports détaillés</div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className={`px-3 py-1 rounded-full text-sm ${
-                      features.statistiques ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {features.statistiques ? 'Activé' : 'Désactivé'}
-                    </span>
-                    <button
-                      onClick={() => onFeatureToggle('statistiques', !features.statistiques)}
-                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                    >
-                      {features.statistiques ? 'Désactiver' : 'Activer'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-              
-              {features.statistiques && (
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-800">Configuration des rapports</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 border border-gray-200 rounded-lg">
-                      <h4 className="font-medium mb-2">Fréquence des rapports</h4>
-                      <p className="text-sm text-gray-600">Définissez la fréquence de génération des rapports</p>
-                    </div>
-                    <div className="p-4 border border-gray-200 rounded-lg">
-                      <h4 className="font-medium mb-2">Métriques affichées</h4>
-                      <p className="text-sm text-gray-600">Sélectionnez les métriques à afficher dans les tableaux de bord</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        );
-        
-      case 'notifications':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Paramètres des notifications</h2>
-              <p className="text-gray-600 mb-6">Configurez les alertes et notifications système</p>
-            </div>
-            
-            <div className="space-y-6">
-              <div className="p-4 border border-gray-200 rounded-lg">
-                <h3 className="font-semibold text-gray-800 mb-3">Statut de la fonctionnalité</h3>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-medium">Notifications système</div>
-                    <div className="text-sm text-gray-600">Alertes et notifications en temps réel</div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className={`px-3 py-1 rounded-full text-sm ${
-                      features.notifications ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {features.notifications ? 'Activé' : 'Désactivé'}
-                    </span>
-                    <button
-                      onClick={() => onFeatureToggle('notifications', !features.notifications)}
-                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                    >
-                      {features.notifications ? 'Désactiver' : 'Activer'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-              
-              {features.notifications && (
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-800">Types de notifications</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 border border-gray-200 rounded-lg">
-                      <h4 className="font-medium mb-2">Nouvelles réservations</h4>
-                      <p className="text-sm text-gray-600">Recevez des notifications pour les nouvelles réservations</p>
-                    </div>
-                    <div className="p-4 border border-gray-200 rounded-lg">
-                      <h4 className="font-medium mb-2">Messages non lus</h4>
-                      <p className="text-sm text-gray-600">Soyez alerté des nouveaux messages</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        );
-        
-      case 'users':
-        return <ImprovedUsersManagement />;
-        
-      case 'documents':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Gestion des documents</h2>
-              <p className="text-gray-600 mb-6">Gérez les documents de votre application</p>
-            </div>
-            
-            {templates && onTemplateCreate && onTemplateUpdate && onTemplateDelete && onTemplateDuplicate ? (
-              <DocumentsManagement
-                templates={templates}
-                onTemplateCreate={onTemplateCreate}
-                onTemplateUpdate={onTemplateUpdate}
-                onTemplateDelete={onTemplateDelete}
-                onTemplateDuplicate={onTemplateDuplicate}
-              />
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-gray-600">Fonctionnalité de gestion des documents non disponible</p>
-              </div>
-            )}
-          </div>
-        );
-        
-      default:
-        return <div>Page non trouvée</div>;
-    }
-  };
+                 );
+         
+               case 'chambres':
+          return (
+            <ChambresPage
+              selectedHotel={selectedHotel ? {
+                id: selectedHotel,
+                nom: hotels?.find(h => h.id === selectedHotel)?.nom || '',
+                chambresTotal: 50,
+                chambresOccupees: 35,
+                tauxOccupation: 70
+              } : null}
+              onActionClick={() => {}}
+            />
+          );
+         
+               case 'clients':
+          return (
+            <OperateursTable
+              operateurs={operateurs || []}
+              onOperateurSelect={onOperateurSelect || (() => {})}
+            />
+          );
+         
+               case 'utilisateurs':
+          return (
+            <UsersManagement
+              users={users || []}
+              hotels={hotels || []}
+              onUserCreate={onUserCreate || (() => {})}
+              onUserUpdate={onUserUpdate || (() => {})}
+              onUserDelete={onUserDelete || (() => {})}
+              onUserToggleStatus={onUserToggleStatus || (() => {})}
+            />
+          );
+         
+               case 'documents':
+          return (
+            <DocumentsManagement
+              templates={templates || []}
+              onTemplateCreate={onTemplateCreate || (() => {})}
+              onTemplateUpdate={onTemplateUpdate || (() => {})}
+              onTemplateDelete={onTemplateDelete || (() => {})}
+              onTemplateDuplicate={onTemplateDuplicate || (() => {})}
+            />
+          );
+         
+       default:
+         return <div>Page non trouvée</div>;
+     }
+   };
 
   return (
     <div>
@@ -427,8 +443,6 @@ export default function ParametresPage({
         items={topBarItems}
         activeItem={activeTab}
         onItemClick={setActiveTab}
-        title="Paramètres"
-        description="Configurez votre application selon vos besoins"
       />
       <div className="px-6">
         {renderContent()}

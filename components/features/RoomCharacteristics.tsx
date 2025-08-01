@@ -333,7 +333,7 @@ export default function RoomCharacteristics() {
       {/* En-tête */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Caractéristiques des chambres</h1>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Caractéristiques des chambres</h2>
           <p className="text-gray-600">Gérez les équipements, services et caractéristiques disponibles</p>
         </div>
         <Button onClick={() => setIsCreating(true)} className="flex items-center gap-2">
@@ -342,56 +342,7 @@ export default function RoomCharacteristics() {
         </Button>
       </div>
 
-      {/* Statistiques globales */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-100 text-sm">Total chambres</p>
-                <p className="text-2xl font-bold">{totalChambres}</p>
-              </div>
-              <Bed className="h-8 w-8 text-blue-200" />
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-100 text-sm">Caractéristiques</p>
-                <p className="text-2xl font-bold">{characteristics.length}</p>
-              </div>
-              <Settings className="h-8 w-8 text-green-200" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-purple-100 text-sm">Coût installation</p>
-                <p className="text-2xl font-bold">{coutTotalInstallation.toLocaleString()}€</p>
-              </div>
-              <Wrench className="h-8 w-8 text-purple-200" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-orange-100 text-sm">Coût mensuel</p>
-                <p className="text-2xl font-bold">{coutTotalMensuel.toLocaleString()}€</p>
-              </div>
-              <Euro className="h-8 w-8 text-orange-200" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Liste des caractéristiques */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

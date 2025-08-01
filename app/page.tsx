@@ -3,14 +3,19 @@
 import { useState, useEffect } from 'react';
 import Header from '../components/layout/Header';
 import Sidebar from '../components/layout/Sidebar';
-import Dashboard from '../components/pages/Dashboard';
+
 import ReservationsPage from '../components/pages/ReservationsPage';
-import ChambresPage from '../components/pages/ChambresPage';
+
 import GestionPage from '../components/pages/GestionPage';
+
+import ClientManagement from '../components/features/ClientManagement';
 import OperateursTable from '../components/features/OperateursTable';
+import ChambresPage from '../components/pages/ChambresPage';
+
+import ComptabilitePage from '../components/pages/ComptabilitePage';
 
 import ParametresPage from '../components/pages/ParametresPage';
-import TestPDFGeneration from '../components/features/TestPDFGeneration';
+
 import ReportsPage from '../components/pages/ReportsPage';
 import { 
   generateHotels, 
@@ -23,13 +28,14 @@ import {
   generateUsers,
   generateDocumentTemplates
 } from '../utils/dataGenerators';
+import { Calendar } from 'lucide-react';
 import { documentTemplates } from '../utils/syntheticData';
 import { Hotel, Reservation, OperateurSocial, ConventionPrix, ProcessusReservation, Message, Conversation, DashboardStats, User, DocumentTemplate } from '../types';
 import { useNotifications } from '../hooks/useNotifications';
 import { supabase } from '../lib/supabase';
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('reservations');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -83,6 +89,12 @@ export default function Home() {
     } else {
       addNotification('info', 'Mode tous les établissements activé');
     }
+  };
+
+  const handleHotelCreate = (hotel: Omit<Hotel, 'id'>) => {
+    const newHotel = { ...hotel, id: Math.max(...hotels.map(h => h.id), 0) + 1 };
+    setHotels(prev => [...prev, newHotel]);
+    addNotification('success', 'Établissement créé avec succès');
   };
 
   const handleReservationSelect = (reservation: Reservation) => {
@@ -347,16 +359,10 @@ export default function Home() {
     }
 
     switch (activeTab) {
-      case 'dashboard':
-        return (
-          <Dashboard
-            stats={dashboardStats}
-            onActionClick={() => {}}
-            features={features}
-            selectedHotel={selectedHotel ? hotels.find(h => h.id === selectedHotel) || null : null}
-          />
-        );
       case 'reservations':
+      case 'reservations-disponibilite':
+      case 'reservations-liste':
+      case 'reservations-calendrier':
         return (
           <ReservationsPage
             hotels={filteredHotels}
@@ -364,6 +370,7 @@ export default function Home() {
             templates={templates}
             selectedHotel={selectedHotel ? hotels.find(h => h.id === selectedHotel)?.nom : undefined}
             onReservationSelect={handleReservationSelect}
+            activeSubTab={activeTab}
           />
         );
       case 'chambres':
@@ -378,6 +385,21 @@ export default function Home() {
         );
       case 'gestion':
         return <GestionPage selectedHotel={selectedHotel ? hotels.find(h => h.id === selectedHotel) || null : null} />;
+
+
+
+      case 'clients':
+        return (
+          <div className="space-y-6">
+            <ClientManagement
+              onClientSelect={(client) => {
+                console.log('Client sélectionné:', client);
+                addNotification('info', `Client sélectionné : ${client.nom}`);
+              }}
+            />
+          </div>
+        );
+
       case 'operateurs':
         if (!features.operateursSociaux) {
           return (
@@ -394,20 +416,37 @@ export default function Home() {
           />
         );
 
-      case 'rapports':
+      case 'analyses-donnees':
         return <ReportsPage hotels={hotels} selectedHotelId={selectedHotel} />;
+
+      case 'comptabilite':
+      case 'comptabilite-journaux':
+      case 'comptabilite-facturation-paiements':
+      case 'comptabilite-analytique':
+      case 'comptabilite-exports':
+      case 'comptabilite-tva-taxes':
+      case 'comptabilite-clients':
+        return (
+          <ComptabilitePage 
+            hotels={hotels} 
+            selectedHotelId={selectedHotel}
+            activeSubTab={activeTab}
+          />
+        );
+
       case 'parametres':
         return (
           <div className="space-y-6">
-            <TestPDFGeneration />
             <ParametresPage
               features={features}
               selectedHotel={selectedHotel}
               hotels={hotels}
               users={users}
               templates={templates}
+              operateurs={filteredOperateurs}
               onFeatureToggle={handleFeatureToggle}
               onHotelSelect={handleHotelSelect}
+              onHotelCreate={handleHotelCreate}
               onSaveSettings={handleSaveSettings}
               onResetSettings={handleResetSettings}
               onUserCreate={handleUserCreate}
@@ -418,6 +457,7 @@ export default function Home() {
               onTemplateUpdate={handleTemplateUpdate}
               onTemplateDelete={handleTemplateDelete}
               onTemplateDuplicate={handleTemplateDuplicate}
+              onOperateurSelect={handleOperateurSelect}
             />
           </div>
         );

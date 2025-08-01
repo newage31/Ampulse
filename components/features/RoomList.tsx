@@ -459,8 +459,6 @@ export default function RoomList() {
       {/* En-tête avec actions */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestion des chambres</h1>
-          <p className="text-gray-600">Gérez l'inventaire et les caractéristiques de vos chambres</p>
         </div>
         <div className="flex items-center gap-3">
           <Button
@@ -480,56 +478,7 @@ export default function RoomList() {
         </div>
       </div>
 
-      {/* Statistiques globales */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-100 text-sm">Total chambres</p>
-                <p className="text-2xl font-bold">{totalRooms}</p>
-              </div>
-              <Building2 className="h-8 w-8 text-blue-200" />
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-100 text-sm">Disponibles</p>
-                <p className="text-2xl font-bold">{availableRooms}</p>
-              </div>
-              <CheckCircle className="h-8 w-8 text-green-200" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-purple-100 text-sm">Taux d'occupation</p>
-                <p className="text-2xl font-bold">{averageOccupancy.toFixed(1)}%</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-purple-200" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-orange-100 text-sm">Revenus mensuels</p>
-                <p className="text-2xl font-bold">{totalRevenue.toLocaleString()}€</p>
-              </div>
-              <Euro className="h-8 w-8 text-orange-200" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Filtres et recherche */}
       <Card>

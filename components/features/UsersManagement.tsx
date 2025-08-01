@@ -31,7 +31,6 @@ import {
   AlertCircle,
   Search,
   Filter,
-  TrendingUp,
   Lock,
   Unlock
 } from 'lucide-react';
@@ -169,17 +168,7 @@ export default function UsersManagement({
     setShowDeleteConfirm(null);
   };
 
-  // Statistiques
-  const stats = {
-    total: users.length,
-    actifs: users.filter(u => u.statut === 'actif').length,
-    inactifs: users.filter(u => u.statut === 'inactif').length,
-    roles: roleDefinitions.length,
-    parRole: roleDefinitions.map(role => ({
-      role,
-      count: users.filter(u => u.role === role.id).length
-    }))
-  };
+
 
   return (
     <div className="space-y-6">
@@ -194,63 +183,13 @@ export default function UsersManagement({
         </Button>
       </div>
 
-      {/* Statistiques rapides */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-100 text-sm">Total utilisateurs</p>
-                <p className="text-2xl font-bold">{stats.total}</p>
-              </div>
-              <Users className="h-8 w-8 text-blue-200" />
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-100 text-sm">Actifs</p>
-                <p className="text-2xl font-bold">{stats.actifs}</p>
-              </div>
-              <CheckCircle className="h-8 w-8 text-green-200" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-r from-red-500 to-red-600 text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-red-100 text-sm">Inactifs</p>
-                <p className="text-2xl font-bold">{stats.inactifs}</p>
-              </div>
-              <UserX className="h-8 w-8 text-red-200" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-purple-100 text-sm">Rôles</p>
-                <p className="text-2xl font-bold">{stats.roles}</p>
-              </div>
-              <Shield className="h-8 w-8 text-purple-200" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="list">Liste des utilisateurs</TabsTrigger>
           <TabsTrigger value="roles">Rôles et permissions</TabsTrigger>
           <TabsTrigger value="permissions">Gestion des permissions</TabsTrigger>
-          <TabsTrigger value="stats">Statistiques</TabsTrigger>
         </TabsList>
 
         <TabsContent value="list" className="space-y-4">
@@ -418,41 +357,7 @@ export default function UsersManagement({
           />
         </TabsContent>
 
-        <TabsContent value="stats" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5" />
-                Répartition par rôle
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {stats.parRole.map(({ role, count }) => {
-                  const percentage = stats.total > 0 ? Math.round((count / stats.total) * 100) : 0;
-                  return (
-                    <div key={role.id} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">{role.icon}</span>
-                        <span>{role.nom}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-24 bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-blue-600 h-2 rounded-full" 
-                            style={{ width: `${percentage}%` }}
-                          ></div>
-                        </div>
-                        <span className="font-semibold">{count}</span>
-                        <span className="text-gray-500">({percentage}%)</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+
       </Tabs>
 
       {/* Modal de création d'utilisateur */}

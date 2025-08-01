@@ -56,6 +56,28 @@ export const roleDefinitions: RoleDefinition[] = [
       { module: 'chambres', actions: ['read'] },
       { module: 'gestion', actions: ['read'] }
     ]
+  },
+  {
+    id: 'technicien_maintenance',
+    nom: 'Technicien de Maintenance',
+    description: 'Accès : Gestion des chambres (maintenance, réparations), Statut des équipements, Signalement des problèmes. Accès limité au dashboard.',
+    icon: '🔧',
+    permissions: [
+      { module: 'dashboard', actions: ['read'] },
+      { module: 'chambres', actions: ['read', 'write'] },
+      { module: 'gestion', actions: ['read'] }
+    ]
+  },
+  {
+    id: 'femme_menage',
+    nom: 'Femme de Ménage',
+    description: 'Accès : Statut des chambres (nettoyage, préparation), Planning de ménage, Signalement des problèmes. Consultation limitée des réservations.',
+    icon: '🧹',
+    permissions: [
+      { module: 'dashboard', actions: ['read'] },
+      { module: 'chambres', actions: ['read', 'write'] },
+      { module: 'reservations', actions: ['read'] }
+    ]
   }
 ];
 
@@ -129,6 +151,43 @@ export const generateUsers = (hotels: Hotel[]): User[] => {
         dateCreation: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR'),
         derniereConnexion: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR'),
         permissions: roleDefinitions.find(r => r.id === 'receptionniste')?.permissions || []
+      });
+    }
+  });
+
+  // Techniciens de maintenance (1 par hôtel)
+  hotels.slice(0, 10).forEach((hotel, hotelIndex) => {
+    users.push({
+      id: id++,
+      nom: noms[(hotelIndex + 2) % noms.length],
+      prenom: prenoms[(hotelIndex + 5) % prenoms.length],
+      email: `technicien${hotelIndex + 1}@soli-reserve.fr`,
+      telephone: `01.${70 + hotelIndex}.${40 + hotelIndex}.${40 + hotelIndex}.${40 + hotelIndex}`,
+      role: 'technicien_maintenance',
+      hotelId: hotel.id,
+      statut: Math.random() > 0.05 ? 'actif' : 'inactif',
+      dateCreation: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR'),
+      derniereConnexion: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR'),
+      permissions: roleDefinitions.find(r => r.id === 'technicien_maintenance')?.permissions || []
+    });
+  });
+
+  // Femmes de ménage (2-4 par hôtel)
+  hotels.slice(0, 12).forEach((hotel, hotelIndex) => {
+    const nbFemmesMenage = Math.floor(Math.random() * 3) + 2; // 2-4 femmes de ménage
+    for (let i = 0; i < nbFemmesMenage; i++) {
+      users.push({
+        id: id++,
+        nom: noms[(hotelIndex * 2 + i + 3) % noms.length],
+        prenom: prenoms[(hotelIndex * 2 + i + 8) % prenoms.length],
+        email: `menage${hotelIndex + 1}.${i + 1}@soli-reserve.fr`,
+        telephone: `01.${80 + hotelIndex}.${50 + i}.${50 + i}.${50 + i}`,
+        role: 'femme_menage',
+        hotelId: hotel.id,
+        statut: Math.random() > 0.08 ? 'actif' : 'inactif',
+        dateCreation: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR'),
+        derniereConnexion: new Date(Date.now() - Math.random() * 3 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR'),
+        permissions: roleDefinitions.find(r => r.id === 'femme_menage')?.permissions || []
       });
     }
   });

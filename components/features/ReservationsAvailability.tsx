@@ -37,6 +37,7 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
   const [searchHotel, setSearchHotel] = useState<string>('all');
   const [numberOfGuests, setNumberOfGuests] = useState<number>(1);
   const [showAvailableOnly, setShowAvailableOnly] = useState<boolean>(false);
+  const [rentalMode, setRentalMode] = useState<'pax' | 'room'>('room'); // Mode de location
   
   // États pour la réservation rapide
   const [isQuickReservationModalOpen, setIsQuickReservationModalOpen] = useState(false);
@@ -174,15 +175,17 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
         if (hotel) hotelId = hotel.id;
       }
 
-      // Appeler la fonction de base de données
-      const { data, error } = await supabase
-        .rpc('get_available_rooms_with_details', {
-          p_date_debut: searchDateRange.startDate,
-          p_date_fin: searchDateRange.endDate,
-          p_hotel_id: hotelId,
-          p_room_type: selectedRoomType !== 'all' ? selectedRoomType : null,
-          p_capacity: numberOfGuests
-        });
+             // Appeler la fonction de base de données avec tous les filtres
+       const { data, error } = await supabase
+         .rpc('get_available_rooms_with_details', {
+           p_date_debut: searchDateRange.startDate,
+           p_date_fin: searchDateRange.endDate,
+           p_hotel_id: hotelId,
+           p_room_type: selectedRoomType !== 'all' ? selectedRoomType : null,
+           p_capacity: numberOfGuests,
+           p_characteristic: selectedCharacteristic !== 'all' ? selectedCharacteristic : null,
+           p_rental_mode: rentalMode
+         });
 
       if (error) {
         console.error('Erreur lors de la recherche des chambres:', error);
@@ -205,7 +208,13 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
           hotelId: room.hotel_id
         }));
         
-        setAvailableRooms(transformedRooms);
+        // Filtrer les résultats par capacité si nécessaire
+        let filteredRooms = transformedRooms;
+        if (numberOfGuests > 1) {
+          filteredRooms = transformedRooms.filter(room => room.capacity >= numberOfGuests);
+        }
+        
+        setAvailableRooms(filteredRooms);
       }
     } catch (error) {
       console.error('Erreur lors de la recherche des chambres:', error);
@@ -251,11 +260,41 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
             continue;
           }
 
-          const days = Math.ceil((searchEnd.getTime() - searchStart.getTime()) / (1000 * 60 * 60 * 24));
-          const basePrice = roomType === 'Suite' ? 120 : 
-                           roomType === 'Familiale' ? 100 : 
-                           roomType === 'Double' ? 80 : 60;
-          const totalPrice = basePrice * days;
+                     const days = Math.ceil((searchEnd.getTime() - searchStart.getTime()) / (1000 * 60 * 60 * 24));
+           const basePrice = roomType === 'Suite' ? 120 : 
+                            roomType === 'Familiale' ? 100 : 
+                            roomType === 'Double' ? 80 : 60;
+           
+           // Calculer le prix selon le mode de location
+           let totalPrice: number;
+           if (rentalMode === 'pax') {
+             // Mode PAX : prix par personne
+             totalPrice = basePrice * numberOfGuests * days;
+           } else {
+             // Mode chambre complète : prix fixe pour la chambre
+             totalPrice = basePrice * days;
+           }
+
+          const capacity = roomType === 'Familiale' ? 4 : 
+                          roomType === 'Suite' ? 3 : 
+                          roomType === 'Double' ? 2 : 1;
+
+          // Filtrer par capacité si spécifié
+          if (numberOfGuests > 1 && capacity < numberOfGuests) {
+            continue;
+          }
+
+          const characteristics = getRandomCharacteristics();
+          
+          // Filtrer par caractéristique si spécifiée
+          if (selectedCharacteristic !== 'all') {
+            const hasCharacteristic = Object.values(characteristics).some(char => 
+              typeof char === 'string' && char.toLowerCase().includes(selectedCharacteristic.toLowerCase())
+            );
+            if (!hasCharacteristic) {
+              continue;
+            }
+          }
 
           simulatedRooms.push({
             hotel: hotel.nom,
@@ -266,10 +305,8 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
             isAvailable: !isOccupied,
             pricePerNight: basePrice,
             totalPrice,
-            characteristics: getRandomCharacteristics(),
-            capacity: roomType === 'Familiale' ? 4 : 
-                     roomType === 'Suite' ? 3 : 
-                     roomType === 'Double' ? 2 : 1
+            characteristics,
+            capacity
           });
         }
       }
@@ -278,10 +315,12 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
     return simulatedRooms;
   };
 
-  // Effectuer la recherche quand les critères changent
+  // Effectuer la recherche automatiquement seulement si les dates sont définies
   useEffect(() => {
-    searchAvailableRooms();
-  }, [searchDateRange, searchHotel, selectedRoomType, numberOfGuests, showAvailableOnly]);
+    if (searchDateRange.startDate && searchDateRange.endDate) {
+      searchAvailableRooms();
+    }
+  }, [searchDateRange.startDate, searchDateRange.endDate]);
 
   // Générer des caractéristiques aléatoires pour les chambres
   const getRandomCharacteristics = () => {
@@ -375,6 +414,8 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
     setSearchHotel('all');
     setNumberOfGuests(1);
     setShowAvailableOnly(false);
+    setRentalMode('room'); // Réinitialiser le mode de location
+    setAvailableRooms([]); // Vider les résultats
   };
 
   // Fonctions pour la réservation rapide
@@ -402,47 +443,62 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {/* Première ligne : Dates et nombre de personnes */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Date d'arrivée *
-                </label>
-                <input
-                  type="date"
-                  value={searchDateRange.startDate}
-                  onChange={(e) => setSearchDateRange(prev => ({ ...prev, startDate: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Date de départ *
-                </label>
-                <input
-                  type="date"
-                  value={searchDateRange.endDate}
-                  onChange={(e) => setSearchDateRange(prev => ({ ...prev, endDate: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nombre de personnes
-                </label>
-                <select
-                  value={numberOfGuests}
-                  onChange={(e) => setNumberOfGuests(parseInt(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {[1, 2, 3, 4, 5, 6].map(num => (
-                    <option key={num} value={num}>{num} personne{num > 1 ? 's' : ''}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
+                         {/* Première ligne : Dates et nombre de personnes */}
+             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+               <div>
+                 <label className="block text-sm font-medium text-gray-700 mb-2">
+                   Date d'arrivée *
+                 </label>
+                 <input
+                   type="date"
+                   value={searchDateRange.startDate}
+                   onChange={(e) => setSearchDateRange(prev => ({ ...prev, startDate: e.target.value }))}
+                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   required
+                 />
+               </div>
+               <div>
+                 <label className="block text-sm font-medium text-gray-700 mb-2">
+                   Date de départ *
+                 </label>
+                 <input
+                   type="date"
+                   value={searchDateRange.endDate}
+                   onChange={(e) => setSearchDateRange(prev => ({ ...prev, endDate: e.target.value }))}
+                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   required
+                 />
+               </div>
+               <div>
+                 <label className="block text-sm font-medium text-gray-700 mb-2">
+                   Mode de location
+                 </label>
+                 <select
+                   value={rentalMode}
+                   onChange={(e) => setRentalMode(e.target.value as 'pax' | 'room')}
+                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                 >
+                   <option value="room">Chambre complète</option>
+                   <option value="pax">Par personne (PAX)</option>
+                 </select>
+               </div>
+               <div>
+                 <label className="block text-sm font-medium text-gray-700 mb-2">
+                   {rentalMode === 'pax' ? 'Nombre de personnes' : 'Capacité minimale'}
+                 </label>
+                 <select
+                   value={numberOfGuests}
+                   onChange={(e) => setNumberOfGuests(parseInt(e.target.value))}
+                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                 >
+                   {[1, 2, 3, 4, 5, 6].map(num => (
+                     <option key={num} value={num}>
+                       {rentalMode === 'pax' ? `${num} personne${num > 1 ? 's' : ''}` : `${num} personne${num > 1 ? 's' : ''} min`}
+                     </option>
+                   ))}
+                 </select>
+               </div>
+             </div>
 
             {/* Deuxième ligne : Hôtel et type de chambre */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -516,6 +572,14 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
               
               <div className="flex gap-2">
                 <Button
+                  onClick={searchAvailableRooms}
+                  disabled={!searchDateRange.startDate || !searchDateRange.endDate || loadingRooms}
+                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+                >
+                  <Search className="h-4 w-4" />
+                  {loadingRooms ? 'Recherche...' : 'Rechercher'}
+                </Button>
+                <Button
                   onClick={resetSearchFilters}
                   variant="outline"
                   size="sm"
@@ -524,7 +588,7 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
                   <Filter className="h-4 w-4" />
                   Réinitialiser
                 </Button>
-                {searchDateRange.startDate && searchDateRange.endDate && (
+                {searchDateRange.startDate && searchDateRange.endDate && availableRooms.length > 0 && (
                   <Badge className="bg-blue-100 text-blue-800">
                     {availableRooms.length} résultat{availableRooms.length !== 1 ? 's' : ''}
                   </Badge>
@@ -540,7 +604,30 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              <span>Chambres disponibles</span>
+              <div className="flex items-center gap-2">
+                <span>Chambres disponibles</span>
+                                 {/* Affichage des filtres actifs */}
+                 <div className="flex gap-1">
+                   <Badge variant="secondary" className="text-xs">
+                     {rentalMode === 'pax' ? 'PAX' : 'Chambre'}
+                   </Badge>
+                   {numberOfGuests > 1 && (
+                     <Badge variant="secondary" className="text-xs">
+                       {numberOfGuests} {rentalMode === 'pax' ? 'pax' : 'pers'}
+                     </Badge>
+                   )}
+                   {selectedRoomType !== 'all' && (
+                     <Badge variant="secondary" className="text-xs">
+                       {selectedRoomType}
+                     </Badge>
+                   )}
+                   {searchHotel !== 'all' && (
+                     <Badge variant="secondary" className="text-xs">
+                       {searchHotel}
+                     </Badge>
+                   )}
+                 </div>
+              </div>
               <Badge variant="outline">
                 {availableRooms.filter((room: any) => room.isAvailable).length} / {availableRooms.length} disponibles
               </Badge>
@@ -581,19 +668,22 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
                         <span className="text-sm text-gray-600">{room.roomType}</span>
                       </div>
                       
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600 flex items-center gap-1">
-                          <Users className="h-3 w-3" />
-                          {room.capacity} personne{room.capacity > 1 ? 's' : ''}
-                        </span>
-                        <span className="text-lg font-bold text-blue-600">
-                          {room.totalPrice}€
-                        </span>
-                      </div>
-                      
-                      <p className="text-xs text-gray-500">
-                        {room.pricePerNight}€/nuit
-                      </p>
+                                             <div className="flex justify-between items-center">
+                         <span className="text-sm text-gray-600 flex items-center gap-1">
+                           <Users className="h-3 w-3" />
+                           {room.capacity} personne{room.capacity > 1 ? 's' : ''}
+                         </span>
+                         <span className="text-lg font-bold text-blue-600">
+                           {room.totalPrice}€
+                         </span>
+                       </div>
+                       
+                       <p className="text-xs text-gray-500">
+                         {rentalMode === 'pax' 
+                           ? `${room.pricePerNight}€/personne/nuit`
+                           : `${room.pricePerNight}€/nuit`
+                         }
+                       </p>
                       
                       <div className="pt-2">
                         <p className="text-xs font-medium text-gray-700 mb-1">Équipements :</p>

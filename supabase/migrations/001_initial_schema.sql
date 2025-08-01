@@ -12,7 +12,7 @@ CREATE TABLE public.users (
     nom VARCHAR(100) NOT NULL,
     prenom VARCHAR(100) NOT NULL,
     telephone VARCHAR(20),
-    role VARCHAR(20) NOT NULL CHECK (role IN ('admin', 'manager', 'comptable', 'receptionniste')),
+    role VARCHAR(30) NOT NULL CHECK (role IN ('admin', 'manager', 'comptable', 'receptionniste', 'technicien_maintenance', 'femme_menage')),
     hotel_id INTEGER, -- Référence vers hotels.id
     statut VARCHAR(10) NOT NULL DEFAULT 'actif' CHECK (statut IN ('actif', 'inactif')),
     date_creation TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
