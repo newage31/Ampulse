@@ -30,7 +30,6 @@ import {
   generateDocumentTemplates
 } from '../utils/dataGenerators';
 import { Calendar } from 'lucide-react';
-import { documentTemplates } from '../utils/syntheticData';
 import { Hotel, Reservation, OperateurSocial, ConventionPrix, ProcessusReservation, Message, Conversation, DashboardStats, User, DocumentTemplate } from '../types';
 import { useNotifications } from '../hooks/useNotifications';
 import { supabase } from '../lib/supabase';
@@ -263,7 +262,7 @@ export default function Home() {
         setConversations(generateConversations(transformedOperateurs));
         setMessages(generateMessages(generateConversations(transformedOperateurs)));
         setUsers(generateUsers(transformedHotels));
-        setTemplates(documentTemplates);
+        setTemplates(generateDocumentTemplates());
         
         setIsLoading(false);
       } catch (error) {
