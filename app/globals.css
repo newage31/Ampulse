@@ -183,11 +183,6 @@
   }
 
   /* Styles pour les listes */
-  ul, ol {
-    margin-bottom: 1rem;
-    padding-left: 1.5rem;
-  }
-
   li {
     margin-bottom: 0.25rem;
     line-height: var(--leading-relaxed);

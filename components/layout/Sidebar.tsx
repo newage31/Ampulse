@@ -15,7 +15,8 @@ import {
   Receipt,
   DollarSign,
   Download,
-  Wrench
+  Wrench,
+  Menu
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -24,7 +25,6 @@ interface SidebarProps {
   onTabChange: (tab: string) => void;
   features?: {
     operateursSociaux: boolean;
-  
     statistiques: boolean;
     notifications: boolean;
   };
@@ -33,6 +33,7 @@ interface SidebarProps {
 
 export default function Sidebar({ activeTab, onTabChange, features, selectedHotel }: SidebarProps) {
   const [expandedComptabilite, setExpandedComptabilite] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Protection contre les erreurs de rendu
   if (!features) {
@@ -70,8 +71,7 @@ export default function Sidebar({ activeTab, onTabChange, features, selectedHote
       icon: Users, 
       alwaysVisible: true
     },
-
-        {
+    {
       id: 'analyses-donnees',
       label: 'Analyses de données',
       icon: BarChart3,
@@ -98,7 +98,6 @@ export default function Sidebar({ activeTab, onTabChange, features, selectedHote
   // Valeurs par défaut si features n'est pas défini
   const defaultFeatures = {
     operateursSociaux: true,
-
     statistiques: true,
     notifications: true
   };
@@ -110,18 +109,15 @@ export default function Sidebar({ activeTab, onTabChange, features, selectedHote
       return tab.alwaysVisible;
     } catch (error) {
       console.error('Erreur lors du filtrage des onglets:', error);
-      return tab.alwaysVisible; // En cas d'erreur, afficher seulement les onglets toujours visibles
+      return tab.alwaysVisible;
     }
   });
 
   const handleTabClick = (tabId: string) => {
-    // Si c'est l'onglet Comptabilité, basculer l'expansion du sous-menu
     if (tabId === 'comptabilite') {
       setExpandedComptabilite(!expandedComptabilite);
       return;
     }
-    
-    // Changement d'onglet normal pour tous les autres onglets
     onTabChange(tabId);
   };
 
@@ -131,89 +127,123 @@ export default function Sidebar({ activeTab, onTabChange, features, selectedHote
 
   const renderTab = (tab: any) => {
     const Icon = tab.icon;
-                    const isActive = activeTab === tab.id;
-                const isComptabiliteActive = activeTab.startsWith('comptabilite-');
+    const isActive = activeTab === tab.id;
+    const isComptabiliteActive = activeTab.startsWith('comptabilite-');
 
     return (
-      <li key={tab.id}>
+      <li key={tab.id} className="relative">
         <Button
-                                          variant={isActive || (tab.id === 'comptabilite' && isComptabiliteActive) ? 'default' : 'ghost'}
-                      className={`w-full justify-start ${
-                        isActive || (tab.id === 'comptabilite' && isComptabiliteActive)
-                          ? 'bg-blue-500 text-white hover:bg-blue-600'
-                          : 'text-gray-700 hover:bg-gray-100'
-                      }`}
+          variant={isActive || (tab.id === 'comptabilite' && isComptabiliteActive) ? 'default' : 'ghost'}
+          className={`w-full justify-start transition-all duration-200 ${
+            isActive || (tab.id === 'comptabilite' && isComptabiliteActive)
+              ? 'bg-blue-500 text-white hover:bg-blue-600'
+              : 'text-gray-700 hover:bg-gray-100'
+          } ${isExpanded ? 'px-3 py-2' : 'px-2 py-3 justify-center'}`}
           onClick={() => handleTabClick(tab.id)}
+          title={!isExpanded ? tab.label : undefined}
         >
-          <Icon className="h-4 w-4 mr-3" />
-          {tab.label}
-                                {tab.hasSubmenu && (
-              <span className="ml-auto">
-                {(tab.id === 'comptabilite' && expandedComptabilite) ?
-                  <ChevronDown className="h-4 w-4" /> :
-                  <ChevronRight className="h-4 w-4" />
-                }
-              </span>
-            )}
-        </Button>
-        
-
-
-
-
-          {/* Sous-menu pour Comptabilité */}
-          {tab.hasSubmenu && tab.id === 'comptabilite' && expandedComptabilite && (
-            <ul className="ml-6 mt-1 space-y-1">
-              {tab.submenu.map((subItem: any) => {
-                const SubIcon = subItem.icon;
-                const isSubActive = activeTab === subItem.id;
-
-                return (
-                  <li key={subItem.id}>
-                    <Button
-                      variant={isSubActive ? 'default' : 'ghost'}
-                      className={`w-full justify-start text-sm ${
-                        isSubActive
-                          ? 'bg-blue-400 text-white hover:bg-blue-500'
-                          : 'text-gray-600 hover:bg-gray-50'
-                      }`}
-                      onClick={() => handleSubmenuClick(subItem.id)}
-                    >
-                      <SubIcon className="h-3 w-3 mr-2" />
-                      {subItem.label}
-                    </Button>
-                  </li>
-                );
-              })}
-            </ul>
+          <Icon className={`${isExpanded ? 'h-4 w-4 mr-3' : 'h-5 w-5'}`} />
+          {isExpanded && (
+            <span className="truncate whitespace-nowrap overflow-hidden">
+              {tab.label}
+            </span>
           )}
-        
-        
+          {isExpanded && tab.hasSubmenu && (
+            <span className="ml-auto">
+              {(tab.id === 'comptabilite' && expandedComptabilite) ?
+                <ChevronDown className="h-4 w-4" /> :
+                <ChevronRight className="h-4 w-4" />
+              }
+            </span>
+          )}
+        </Button>
+
+        {/* Sous-menu pour Comptabilité */}
+        {isExpanded && tab.hasSubmenu && tab.id === 'comptabilite' && expandedComptabilite && (
+          <ul className="ml-2 mt-1 space-y-1">
+            {tab.submenu.map((subItem: any) => {
+              const SubIcon = subItem.icon;
+              const isSubActive = activeTab === subItem.id;
+
+              return (
+                <li key={subItem.id}>
+                  <Button
+                    variant={isSubActive ? 'default' : 'ghost'}
+                    className={`w-full justify-start text-sm px-3 py-1.5 ${
+                      isSubActive
+                        ? 'bg-blue-400 text-white hover:bg-blue-500'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                    onClick={() => handleSubmenuClick(subItem.id)}
+                  >
+                    <SubIcon className="h-3 w-3 mr-2" />
+                    <span className="truncate whitespace-nowrap overflow-hidden">
+                      {subItem.label}
+                    </span>
+                  </Button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </li>
     );
   };
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
-      <div className="p-6 border-b border-gray-200">
-        <h1 className="text-xl font-bold text-gray-900">
-          {selectedHotel ? selectedHotel.nom : 'SoliReserve'}
-        </h1>
-        <p className="text-sm text-gray-600">
-          {selectedHotel ? 'Gestion hôtelière sociale' : 'Sélectionnez un établissement'}
-        </p>
+    <div 
+      className={`bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ease-in-out ${
+        isExpanded ? 'w-64' : 'w-16'
+      }`}
+      onMouseEnter={() => setIsExpanded(true)}
+      onMouseLeave={() => setIsExpanded(false)}
+    >
+      {/* Header */}
+      <div className={`border-b border-gray-200 transition-all duration-300 ${
+        isExpanded ? 'p-4' : 'p-2'
+      }`}>
+        {isExpanded ? (
+          <>
+            <h1 className="text-lg font-bold text-gray-900 truncate">
+              {selectedHotel ? selectedHotel.nom : 'SoliReserve'}
+            </h1>
+            <p className="text-xs text-gray-600 truncate">
+              {selectedHotel ? 'Gestion hôtelière sociale' : 'Sélectionnez un établissement'}
+            </p>
+          </>
+        ) : (
+          <div className="flex justify-center">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+              <Building2 className="h-4 w-4 text-white" />
+            </div>
+          </div>
+        )}
       </div>
       
-      <nav className="flex-1 p-4">
-        <ul className="space-y-2">
+      {/* Navigation */}
+      <nav className={`flex-1 transition-all duration-300 ${
+        isExpanded ? 'p-2' : 'p-1'
+      }`}>
+        <ul className="space-y-1">
           {visibleTabs.map(renderTab)}
         </ul>
       </nav>
       
-      <div className="p-4 border-t border-gray-200">
-        <div className="text-xs text-gray-500">
-          Version 2.0.0
-        </div>
+      {/* Footer */}
+      <div className={`border-t border-gray-200 transition-all duration-300 ${
+        isExpanded ? 'p-3' : 'p-2'
+      }`}>
+        {isExpanded ? (
+          <div className="text-xs text-gray-500 text-center">
+            Version 2.0.0
+          </div>
+        ) : (
+          <div className="flex justify-center">
+            <div className="w-6 h-6 bg-gray-100 rounded flex items-center justify-center">
+              <span className="text-xs text-gray-500 font-bold">2.0</span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
