@@ -18,6 +18,8 @@ import { useState, useEffect } from 'react';
 import { Reservation, Hotel } from '../../types';
 import QuickReservationModal from '../modals/QuickReservationModal';
 import { supabase } from '../../lib/supabase';
+import EndingStaysAlert from './EndingStaysAlert';
+import CriticalRoomsAlert from './CriticalRoomsAlert';
 
 interface ReservationsAvailabilityProps {
   reservations: Reservation[];
@@ -30,6 +32,7 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedRoomType, setSelectedRoomType] = useState<string>('all');
   const [selectedCharacteristic, setSelectedCharacteristic] = useState<string>('all');
+  const [searchRoomNumber, setSearchRoomNumber] = useState<string>('');
   const [searchDateRange, setSearchDateRange] = useState({
     startDate: '',
     endDate: ''
@@ -77,50 +80,9 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
 
   const availability = getAvailabilityForDate(selectedDate, selectedHotel || searchHotel || 'all');
 
-  // Génération des prochaines dates (7 jours)
-  const getNextDays = () => {
-    const days = [];
-    for (let i = 0; i < 7; i++) {
-      const date = new Date();
-      date.setDate(date.getDate() + i);
-      days.push({
-        date: date.toISOString().split('T')[0],
-        dayName: date.toLocaleDateString('fr-FR', { weekday: 'short' }),
-        dayNumber: date.getDate()
-      });
-    }
-    return days;
-  };
 
-  const nextDays = getNextDays();
 
-  // Statistiques de disponibilité par hôtel avec recherche avancée
-  const getHotelAvailability = () => {
-    return hotels.map(hotel => {
-      const hotelReservations = reservations.filter(reservation => {
-        const arrivee = new Date(reservation.dateArrivee);
-        const depart = new Date(reservation.dateDepart);
-        const targetDate = new Date(selectedDate);
-        return reservation.hotel === hotel.nom && 
-               targetDate >= arrivee && 
-               targetDate <= depart;
-      });
 
-      const occupiedRooms = hotelReservations.length;
-      const availableRooms = (hotel.chambresTotal || 0) - occupiedRooms;
-      const occupancyRate = (hotel.chambresTotal || 0) > 0 ? (occupiedRooms / (hotel.chambresTotal || 0) * 100).toFixed(1) : '0';
-
-      return {
-        ...hotel,
-        occupiedRooms,
-        availableRooms,
-        occupancyRate,
-        reservations: hotelReservations
-      };
-    });
-  };
-
-  const hotelAvailability = getHotelAvailability();
 
   // Obtenir tous les types de chambres disponibles
   const getAvailableRoomTypes = () => {
@@ -184,6 +146,7 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
            p_room_type: selectedRoomType !== 'all' ? selectedRoomType : null,
            p_capacity: numberOfGuests,
            p_characteristic: selectedCharacteristic !== 'all' ? selectedCharacteristic : null,
+           p_room_number: searchRoomNumber || null,
            p_rental_mode: rentalMode
          });
 
@@ -257,6 +220,11 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
           else if (roomNum % 2 === 0) roomType = 'Double';
 
           if (selectedRoomType !== 'all' && roomType !== selectedRoomType) {
+            continue;
+          }
+
+          // Filtrer par numéro de chambre si spécifié
+          if (searchRoomNumber && !roomNumber.includes(searchRoomNumber)) {
             continue;
           }
 
@@ -372,6 +340,11 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
         return false;
       }
 
+      // Filtre par numéro de chambre
+      if (searchRoomNumber && !reservation.chambre.includes(searchRoomNumber)) {
+        return false;
+      }
+
       // Filtre par type de chambre (simulé basé sur le numéro de chambre)
       if (selectedRoomType !== 'all') {
         const roomNumber = reservation.chambre;
@@ -410,6 +383,7 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
     setSelectedDate(new Date().toISOString().split('T')[0]);
     setSelectedRoomType('all');
     setSelectedCharacteristic('all');
+    setSearchRoomNumber('');
     setSearchDateRange({ startDate: '', endDate: '' });
     setSearchHotel('all');
     setNumberOfGuests(1);
@@ -500,8 +474,8 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
                </div>
              </div>
 
-            {/* Deuxième ligne : Hôtel et type de chambre */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Deuxième ligne : Hôtel, numéro de chambre et type de chambre */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Hôtel
@@ -518,6 +492,18 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
                     </option>
                   ))}
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Numéro de chambre
+                </label>
+                <input
+                  type="text"
+                  value={searchRoomNumber}
+                  onChange={(e) => setSearchRoomNumber(e.target.value)}
+                  placeholder="Ex: 101, 205..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -616,9 +602,19 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
                        {numberOfGuests} {rentalMode === 'pax' ? 'pax' : 'pers'}
                      </Badge>
                    )}
+                   {searchRoomNumber && (
+                     <Badge variant="secondary" className="text-xs">
+                       Ch. {searchRoomNumber}
+                     </Badge>
+                   )}
                    {selectedRoomType !== 'all' && (
                      <Badge variant="secondary" className="text-xs">
                        {selectedRoomType}
+                     </Badge>
+                   )}
+                   {selectedCharacteristic !== 'all' && (
+                     <Badge variant="secondary" className="text-xs">
+                       {selectedCharacteristic}
                      </Badge>
                    )}
                    {searchHotel !== 'all' && (
@@ -754,7 +750,7 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
       )}
 
       {/* Résultats de recherche des réservations existantes */}
-      {(searchDateRange.startDate || searchDateRange.endDate || selectedRoomType !== 'all' || selectedCharacteristic !== 'all') && (
+      {(searchDateRange.startDate || searchDateRange.endDate || selectedRoomType !== 'all' || selectedCharacteristic !== 'all' || searchRoomNumber) && (
         <Card>
           <CardHeader>
             <CardTitle>Réservations pour la période</CardTitle>
@@ -807,8 +803,8 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
         </Card>
       )}
 
-      {/* Vue d'ensemble */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+             {/* Vue d'ensemble */}
+       <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Chambres totales</CardTitle>
@@ -848,91 +844,42 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Taux d'occupation</CardTitle>
-            <TrendingUp className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${getOccupancyColor(availability.occupancyRate)}`}>
-              {availability.occupancyRate}%
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {parseFloat(availability.occupancyRate) > 80 ? 'Élevé' : 'Normal'}
-            </p>
-          </CardContent>
-        </Card>
+                 <Card>
+           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+             <CardTitle className="text-sm font-medium">Taux d'occupation</CardTitle>
+             <TrendingUp className="h-4 w-4 text-blue-600" />
+           </CardHeader>
+           <CardContent>
+             <div className={`text-2xl font-bold ${getOccupancyColor(availability.occupancyRate)}`}>
+               {availability.occupancyRate}%
+             </div>
+             <p className="text-xs text-muted-foreground">
+               {parseFloat(availability.occupancyRate) > 80 ? 'Élevé' : 'Normal'}
+             </p>
+           </CardContent>
+         </Card>
+
+         <Card>
+           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+             <CardTitle className="text-sm font-medium">Alerte sur occupation</CardTitle>
+             <AlertCircle className="h-4 w-4 text-orange-600" />
+           </CardHeader>
+           <CardContent>
+             <div className={`text-2xl font-bold ${getOccupancyColor(availability.occupancyRate)}`}>
+               {availability.occupancyRate}%
+             </div>
+             <p className="text-xs text-muted-foreground">
+               {parseFloat(availability.occupancyRate) >= 90 ? 'CRITIQUE' : 
+                parseFloat(availability.occupancyRate) >= 75 ? 'ÉLEVÉE' : 
+                parseFloat(availability.occupancyRate) >= 50 ? 'MODÉRÉE' : 'FAIBLE'}
+             </p>
+           </CardContent>
+         </Card>
       </div>
 
-      {/* Prévision sur 7 jours */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Prévision de disponibilité (7 prochains jours)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-7 gap-4">
-            {nextDays.map((day) => {
-              const dayAvailability = getAvailabilityForDate(day.date, selectedHotel);
-              return (
-                <div key={day.date} className="text-center p-3 border rounded-lg">
-                  <div className="text-sm font-medium text-gray-600">{day.dayName}</div>
-                  <div className="text-lg font-bold">{day.dayNumber}</div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {dayAvailability.availableRooms}/{dayAvailability.totalRooms}
-                  </div>
-                  <div className={`text-xs font-medium mt-1 ${getOccupancyColor(dayAvailability.occupancyRate)}`}>
-                    {dayAvailability.occupancyRate}%
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Disponibilité par hôtel */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Disponibilité par établissement</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {hotelAvailability.map((hotel) => (
-              <div key={hotel.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Bed className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">{hotel.nom}</h3>
-                    <p className="text-sm text-gray-500">{hotel.ville}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-6">
-                  <div className="text-center">
-                    <div className="text-sm text-gray-500">Disponibles</div>
-                    <div className="text-lg font-bold text-green-600">{hotel.availableRooms}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-sm text-gray-500">Occupées</div>
-                    <div className="text-lg font-bold text-red-600">{hotel.occupiedRooms}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-sm text-gray-500">Taux</div>
-                    <div className="flex items-center space-x-1">
-                      {getOccupancyIcon(hotel.occupancyRate)}
-                      <span className={`text-lg font-bold ${getOccupancyColor(hotel.occupancyRate)}`}>
-                        {hotel.occupancyRate}%
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+
+
 
       {/* Réservations du jour sélectionné */}
       {availability.reservations.length > 0 && (
@@ -972,18 +919,27 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
         </Card>
       )}
 
-      {/* Modal de réservation rapide */}
-      {isQuickReservationModalOpen && selectedRoomForReservation && (
-        <QuickReservationModal
-          isOpen={isQuickReservationModalOpen}
-          onClose={() => setIsQuickReservationModalOpen(false)}
-          onSuccess={handleQuickReservationSuccess}
-          roomData={selectedRoomForReservation}
-          dateRange={searchDateRange}
-          hotels={hotels}
-          operateurs={operateurs}
-        />
-      )}
-    </div>
-  );
-} 
+             {/* Modal de réservation rapide */}
+       {isQuickReservationModalOpen && selectedRoomForReservation && (
+         <QuickReservationModal
+           isOpen={isQuickReservationModalOpen}
+           onClose={() => setIsQuickReservationModalOpen(false)}
+           onSuccess={handleQuickReservationSuccess}
+           roomData={selectedRoomForReservation}
+           dateRange={searchDateRange}
+           hotels={hotels}
+           operateurs={operateurs}
+         />
+       )}
+
+       {/* Alertes et chambres critiques */}
+       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+         {/* Alerte de fin de séjour */}
+         <EndingStaysAlert maxDisplay={3} />
+         
+         {/* Chambres critiques */}
+         <CriticalRoomsAlert maxDisplay={3} />
+       </div>
+     </div>
+   );
+ } 

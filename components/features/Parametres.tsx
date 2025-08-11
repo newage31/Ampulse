@@ -20,6 +20,7 @@ import {
   Palette,
   Database
 } from 'lucide-react';
+import ModificationHistory from './ModificationHistory';
 
 interface ParametresProps {
   features: {
@@ -30,6 +31,8 @@ interface ParametresProps {
   };
   selectedHotel?: number | null;
   hotels?: Array<{ id: number; nom: string }>;
+  reservations?: Array<{ id: number; numero: string; usager: string; hotel: string }>;
+  agents?: Array<{ id: number; nom: string; prenom: string; role: string }>;
   onFeatureToggle: (feature: string, enabled: boolean) => void;
   onHotelSelect: (hotelId: number | null) => void;
   onSaveSettings: () => void;
@@ -40,6 +43,8 @@ export default function Parametres({
   features, 
   selectedHotel,
   hotels = [],
+  reservations = [],
+  agents = [],
   onFeatureToggle, 
   onHotelSelect,
   onSaveSettings, 
@@ -271,6 +276,12 @@ export default function Parametres({
           </div>
         </CardContent>
       </Card>
+
+      {/* Historique de modifications */}
+      <ModificationHistory 
+        reservations={reservations}
+        agents={agents}
+      />
 
       {/* Informations importantes */}
       <Card className="border-yellow-200 bg-yellow-50">

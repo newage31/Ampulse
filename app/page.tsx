@@ -17,6 +17,7 @@ import ComptabilitePage from '../components/pages/ComptabilitePage';
 import ParametresPage from '../components/pages/ParametresPage';
 
 import ReportsPage from '../components/pages/ReportsPage';
+import MaintenanceManagement from '../components/features/MaintenanceManagement';
 import { 
   generateHotels, 
   generateReservations, 
@@ -419,6 +420,13 @@ export default function Home() {
       case 'analyses-donnees':
         return <ReportsPage hotels={hotels} selectedHotelId={selectedHotel} />;
 
+      case 'maintenance':
+        return (
+          <MaintenanceManagement 
+            selectedHotel={selectedHotel ? hotels.find(h => h.id === selectedHotel)?.nom : undefined}
+          />
+        );
+
       case 'comptabilite':
       case 'comptabilite-journaux':
       case 'comptabilite-facturation-paiements':
@@ -444,6 +452,13 @@ export default function Home() {
               users={users}
               templates={templates}
               operateurs={filteredOperateurs}
+              reservations={reservations}
+              agents={users.map(user => ({
+                id: user.id,
+                nom: user.nom,
+                prenom: user.prenom,
+                role: user.role || 'utilisateur'
+              }))}
               onFeatureToggle={handleFeatureToggle}
               onHotelSelect={handleHotelSelect}
               onHotelCreate={handleHotelCreate}

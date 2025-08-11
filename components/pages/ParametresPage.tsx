@@ -8,13 +8,15 @@ import {
   Users,
   FileText,
   Bed,
-  UserCheck
+  UserCheck,
+  History
 } from 'lucide-react';
 import { User, Hotel, DocumentTemplate } from '../../types';
 import UsersManagement from '../features/UsersManagement';
 import DocumentsManagement from '../features/DocumentsManagement';
 import ChambresPage from '../pages/ChambresPage';
 import OperateursTable from '../features/OperateursTable';
+import ModificationHistory from '../features/ModificationHistory';
 
 interface ParametresPageProps {
   features: {
@@ -28,6 +30,8 @@ interface ParametresPageProps {
   users?: User[];
   templates?: DocumentTemplate[];
   operateurs?: any[];
+  reservations?: Array<{ id: number; numero: string; usager: string; hotel: string }>;
+  agents?: Array<{ id: number; nom: string; prenom: string; role: string }>;
   onFeatureToggle: (feature: string, enabled: boolean) => void;
   onHotelSelect: (hotelId: number | null) => void;
   onHotelCreate?: (hotel: Omit<Hotel, 'id'>) => void;
@@ -51,6 +55,8 @@ export default function ParametresPage({
   users,
   templates,
   operateurs,
+  reservations = [],
+  agents = [],
   onFeatureToggle,
   onHotelSelect,
   onHotelCreate,
@@ -107,6 +113,11 @@ export default function ParametresPage({
       id: 'documents',
       label: 'Documents',
       icon: <FileText className="h-4 w-4" />
+    },
+    {
+      id: 'historique',
+      label: 'Historique',
+      icon: <History className="h-4 w-4" />
     }
   ];
 
@@ -421,21 +432,31 @@ export default function ParametresPage({
             />
           );
          
-               case 'documents':
-          return (
-            <DocumentsManagement
-              templates={templates || []}
-              onTemplateCreate={onTemplateCreate || (() => {})}
-              onTemplateUpdate={onTemplateUpdate || (() => {})}
-              onTemplateDelete={onTemplateDelete || (() => {})}
-              onTemplateDuplicate={onTemplateDuplicate || (() => {})}
+                     case 'documents':
+        return (
+          <DocumentsManagement
+            templates={templates || []}
+            onTemplateCreate={onTemplateCreate || (() => {})}
+            onTemplateUpdate={onTemplateUpdate || (() => {})}
+            onTemplateDelete={onTemplateDelete || (() => {})}
+            onTemplateDuplicate={onTemplateDuplicate || (() => {})}
+          />
+        );
+      
+      case 'historique':
+        return (
+          <div className="space-y-6">
+            <ModificationHistory 
+              reservations={reservations}
+              agents={agents}
             />
-          );
-         
-       default:
-         return <div>Page non trouvée</div>;
-     }
-   };
+          </div>
+        );
+      
+      default:
+        return <div>Page non trouvée</div>;
+    }
+  };
 
   return (
     <div>

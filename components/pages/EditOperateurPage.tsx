@@ -521,7 +521,7 @@ const EditOperateurPage: React.FC<EditOperateurPageProps> = ({ operateur, onSave
                      {conventionsPrix.map((convention, index) => (
                        <Card key={index}>
                          <CardHeader className="flex flex-row items-center justify-between">
-                           <CardTitle className="text-base">Tarif chambre #{index + 1}</CardTitle>
+                           <CardTitle className="text-base">Tarif chambre par jour pour le mois sélectionné #{index + 1}</CardTitle>
                            <Button
                              type="button"
                              variant="outline"

@@ -336,6 +336,8 @@ export default function ReservationsPage({
     if (useFallbackData) {
       return (
         <div className="space-y-6">
+          {/* Banner de mode démonstration masqué */}
+          {/*
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -361,6 +363,7 @@ export default function ReservationsPage({
               </div>
             </div>
           </div>
+          */}
 
           {renderMainContent()}
         </div>

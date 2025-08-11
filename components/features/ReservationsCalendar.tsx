@@ -32,8 +32,8 @@ interface ReservationsCalendarProps {
   selectedHotel?: string; // Hôtel sélectionné dans les paramètres
 }
 
-type AvailabilityFilter = 'all' | 'available' | 'cleaning' | 'maintenance' | 'checkin' | 'checkout';
-type RoomStatusType = 'available' | 'occupied' | 'cleaning' | 'maintenance' | 'checkin' | 'checkout';
+type AvailabilityFilter = 'all' | 'available' | 'cleaning' | 'maintenance' | 'checkin' | 'checkout' | 'occupied_maintenance';
+type RoomStatusType = 'available' | 'occupied' | 'cleaning' | 'maintenance' | 'checkin' | 'checkout' | 'occupied_maintenance';
 
 interface RoomStatus {
   status: RoomStatusType;
@@ -58,6 +58,7 @@ export default function ReservationsCalendar({ reservations, hotels = [], select
   const [editingRoom, setEditingRoom] = useState<{ roomId: string; date: string } | null>(null);
   const [editStatus, setEditStatus] = useState<RoomStatusType>('available');
   const [editNotes, setEditNotes] = useState<string>('');
+  const [roomNumberFilter, setRoomNumberFilter] = useState<string>('');
 
   // Navigation dans le calendrier
   const goToPreviousMonth = () => {
@@ -219,6 +220,7 @@ export default function ReservationsCalendar({ reservations, hotels = [], select
   const getRoomStatusColor = (status: string) => {
     switch (status) {
       case 'occupied': return 'bg-red-500';
+      case 'occupied_maintenance': return 'bg-red-600';
       case 'cleaning': return 'bg-blue-500';
       case 'maintenance': return 'bg-orange-500';
       case 'checkin': return 'bg-green-600';
@@ -241,6 +243,7 @@ export default function ReservationsCalendar({ reservations, hotels = [], select
   const getRoomStatusText = (status: string) => {
     switch (status) {
       case 'occupied': return 'Occupée';
+      case 'occupied_maintenance': return 'Occupée + Maintenance';
       case 'cleaning': return 'Ménage';
       case 'maintenance': return 'Maintenance';
       case 'checkin': return 'Check-in';
@@ -278,17 +281,27 @@ export default function ReservationsCalendar({ reservations, hotels = [], select
     });
   };
 
-  // Filtrer les chambres par état de disponibilité
+  // Filtrer les chambres par état de disponibilité et numéro de chambre
   const getFilteredRooms = (hotelName: string, category: string) => {
-    const rooms = getRoomsByCategory(hotelName, category);
+    let rooms = getRoomsByCategory(hotelName, category);
     
-    if (availabilityFilter === 'all') return rooms;
+    // Filtrer par numéro de chambre si spécifié
+    if (roomNumberFilter.trim()) {
+      rooms = rooms.filter(room => 
+        room.numero.toLowerCase().includes(roomNumberFilter.toLowerCase())
+      );
+    }
     
-    return rooms.filter(room => {
-      const today = new Date();
-      const status = getRoomStatusForDate(room.id, today);
-      return status.status === availabilityFilter;
-    });
+    // Filtrer par état de disponibilité si spécifié
+    if (availabilityFilter !== 'all') {
+      rooms = rooms.filter(room => {
+        const today = new Date();
+        const status = getRoomStatusForDate(room.id, today);
+        return status.status === availabilityFilter;
+      });
+    }
+    
+    return rooms;
   };
 
   const getRoomStatsByStatus = (hotelName: string, category: string = 'all') => {
@@ -298,6 +311,7 @@ export default function ReservationsCalendar({ reservations, hotels = [], select
     const stats = {
       available: 0,
       occupied: 0,
+      occupied_maintenance: 0,
       cleaning: 0,
       maintenance: 0,
       checkin: 0,
@@ -317,11 +331,7 @@ export default function ReservationsCalendar({ reservations, hotels = [], select
     const dateString = date.toISOString().split('T')[0];
     const roomStatus = getRoomStatusForDate(roomId, date);
     
-    // Ne permettre l'édition que pour les chambres non réservées
-    if (roomStatus.reservations.length > 0) {
-      return;
-    }
-
+    // Permettre l'édition pour toutes les chambres, y compris celles occupées
     setEditingRoom({ roomId, date: dateString });
     setEditStatus(roomStatus.status);
     
@@ -373,6 +383,8 @@ export default function ReservationsCalendar({ reservations, hotels = [], select
   const availabilityFilters = [
     { value: 'all', label: 'Toutes', icon: <Eye className="h-4 w-4" />, color: 'bg-gray-500' },
     { value: 'available', label: 'Libres', icon: <CheckSquare className="h-4 w-4" />, color: 'bg-green-400' },
+    { value: 'occupied', label: 'Occupées', icon: <Users className="h-4 w-4" />, color: 'bg-red-500' },
+    { value: 'occupied_maintenance', label: 'Occ. + Maint.', icon: <Wrench className="h-4 w-4" />, color: 'bg-red-600' },
     { value: 'cleaning', label: 'Ménage', icon: <Sparkles className="h-4 w-4" />, color: 'bg-blue-500' },
     { value: 'maintenance', label: 'Maintenance', icon: <Wrench className="h-4 w-4" />, color: 'bg-orange-500' },
     { value: 'checkin', label: 'Check-in', icon: <LogIn className="h-4 w-4" />, color: 'bg-green-600' },
@@ -381,105 +393,124 @@ export default function ReservationsCalendar({ reservations, hotels = [], select
 
   const statusOptions = [
     { value: 'available', label: 'Libre', icon: <CheckSquare className="h-4 w-4" />, color: 'bg-green-400' },
+    { value: 'occupied', label: 'Occupée', icon: <Users className="h-4 w-4" />, color: 'bg-red-500' },
+    { value: 'occupied_maintenance', label: 'Occupée + Maintenance', icon: <Wrench className="h-4 w-4" />, color: 'bg-red-600' },
     { value: 'cleaning', label: 'Ménage', icon: <Sparkles className="h-4 w-4" />, color: 'bg-blue-500' },
     { value: 'maintenance', label: 'Maintenance', icon: <Wrench className="h-4 w-4" />, color: 'bg-orange-500' }
   ];
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Button 
-            variant="outline" 
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center space-x-2"
-          >
-            <Filter className="h-4 w-4" />
-            <span>Filtres</span>
-          </Button>
-          <Button variant="outline" onClick={goToToday}>
-            Aujourd'hui
-          </Button>
-        </div>
-      </div>
+             <div className="flex items-center justify-between">
+         <div className="flex items-center space-x-2">
+           <Button variant="outline" onClick={goToToday}>
+             Aujourd'hui
+           </Button>
+         </div>
+       </div>
 
-      {/* Filtres de disponibilité */}
-      {showFilters && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Filter className="h-5 w-5 mr-2" />
-              Filtres de disponibilité
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {availabilityFilters.map((filter) => (
-                <Button
-                  key={filter.value}
-                  variant={availabilityFilter === filter.value ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setAvailabilityFilter(filter.value as AvailabilityFilter)}
-                  className="flex items-center space-x-2"
-                >
-                  <div className={`w-3 h-3 rounded-full ${filter.color}`}></div>
-                  {filter.icon}
-                  <span>{filter.label}</span>
-                </Button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      
 
       {/* Calendrier par catégorie de chambre */}
       <div className="space-y-6">
-        {/* Sélection de catégorie de chambre */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Building2 className="h-5 w-5 mr-2" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
-              {selectedHotel && (
-                <div className="flex items-center space-x-2">
-                  <Badge variant="secondary" className="flex items-center space-x-1">
-                    <Building2 className="h-3 w-3" />
-                    <span>{selectedHotel}</span>
-                  </Badge>
-                </div>
-              )}
-              
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Catégorie de chambre
-                </label>
-                <select
-                  value={selectedRoomCategory}
-                  onChange={(e) => setSelectedRoomCategory(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-md"
-                >
-                  {getRoomCategories().map((category) => (
-                    <option key={category.value} value={category.value}>
-                      {category.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                 {/* Sélection de catégorie de chambre et filtres - Version optimisée */}
+         <Card>
+           <CardContent className="p-4">
+             <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4">
+                               {/* Hôtel et catégorie */}
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                      Catégorie:
+                    </label>
+                    <select
+                      value={selectedRoomCategory}
+                      onChange={(e) => setSelectedRoomCategory(e.target.value)}
+                      className="text-sm p-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      {getRoomCategories().map((category) => (
+                        <option key={category.value} value={category.value}>
+                          {category.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-              {selectedHotel && (
-                <div className="flex items-center space-x-2">
-                  <Badge variant="secondary" className="flex items-center space-x-1">
-                    <Bed className="h-3 w-3" />
-                    <span>{getFilteredRooms(selectedHotel, selectedRoomCategory).length} chambres</span>
-                  </Badge>
+                  {selectedHotel && (
+                    <Badge variant="outline" className="text-xs">
+                      {getFilteredRooms(selectedHotel, selectedRoomCategory).length} chambres
+                    </Badge>
+                  )}
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+
+               {/* Recherche par numéro */}
+               <div className="flex items-center gap-2 flex-1">
+                 <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                   Recherche:
+                 </label>
+                 <div className="relative flex-1 max-w-xs">
+                   <input
+                     type="text"
+                     value={roomNumberFilter}
+                     onChange={(e) => setRoomNumberFilter(e.target.value)}
+                     placeholder="Numéro de chambre..."
+                     className="w-full text-sm p-2 pl-8 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                   />
+                   <Bed className="absolute left-2 top-2 h-4 w-4 text-gray-400" />
+                 </div>
+                 
+                 {roomNumberFilter && (
+                   <Button
+                     variant="ghost"
+                     size="sm"
+                     onClick={() => setRoomNumberFilter('')}
+                     className="h-8 w-8 p-0"
+                   >
+                     <X className="h-4 w-4" />
+                   </Button>
+                 )}
+               </div>
+
+                               {/* Filtres de disponibilité */}
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                    État:
+                  </label>
+                  <div className="flex flex-wrap gap-1">
+                    {availabilityFilters.map((filter) => (
+                      <Button
+                        key={filter.value}
+                        variant={availabilityFilter === filter.value ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setAvailabilityFilter(filter.value as AvailabilityFilter)}
+                        className="h-7 px-2 text-xs flex items-center gap-1"
+                      >
+                        <div className={`w-2 h-2 rounded-full ${filter.color}`}></div>
+                        <span>{filter.label}</span>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Filtres actifs compacts */}
+                {(roomNumberFilter || availabilityFilter !== 'all') && (
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-gray-500">Actifs:</span>
+                    {roomNumberFilter && (
+                      <Badge variant="secondary" className="text-xs px-2 py-1">
+                        Ch.{roomNumberFilter}
+                      </Badge>
+                    )}
+                    {availabilityFilter !== 'all' && (
+                      <Badge variant="secondary" className="text-xs px-2 py-1">
+                        {availabilityFilters.find(f => f.value === availabilityFilter)?.label}
+                      </Badge>
+                    )}
+                  </div>
+                )}
+             </div>
+           </CardContent>
+         </Card>
 
         {selectedHotel ? (
           <>
@@ -545,7 +576,7 @@ export default function ReservationsCalendar({ reservations, hotels = [], select
                       
                       {days.slice(0, 7).map((day, dayIndex) => {
                         const roomStatus = getRoomStatusForDate(room.id, day.date);
-                        const isEditable = roomStatus.reservations.length === 0;
+                        const isEditable = true; // Permettre l'édition de toutes les chambres
                         const hasCustomState = roomStates.some(state => 
                           state.roomId === room.id && state.date === day.date.toISOString().split('T')[0]
                         );
@@ -555,18 +586,14 @@ export default function ReservationsCalendar({ reservations, hotels = [], select
                             key={dayIndex}
                             className={`min-h-[60px] p-1 border border-gray-200 rounded ${
                               getRoomStatusColor(roomStatus.status)
-                            } text-white text-xs flex flex-col items-center justify-center relative ${
-                              isEditable ? 'cursor-pointer hover:opacity-80' : ''
-                            }`}
+                            } text-white text-xs flex flex-col items-center justify-center relative cursor-pointer hover:opacity-80`}
                             title={`${room.numero} - ${getRoomStatusText(roomStatus.status)}`}
-                            onClick={() => isEditable && openEditModal(room.id, day.date)}
+                            onClick={() => openEditModal(room.id, day.date)}
                           >
-                            {/* Indicateur d'édition pour les chambres non réservées */}
-                            {isEditable && (
-                              <div className="absolute top-1 right-1">
-                                <Edit className="h-2 w-2 opacity-60" />
-                              </div>
-                            )}
+                            {/* Indicateur d'édition pour toutes les chambres */}
+                            <div className="absolute top-1 right-1">
+                              <Edit className="h-2 w-2 opacity-60" />
+                            </div>
                             
                             {/* Indicateur d'état personnalisé */}
                             {hasCustomState && (
@@ -607,12 +634,13 @@ export default function ReservationsCalendar({ reservations, hotels = [], select
             </Card>
 
             {/* Statistiques par catégorie de chambre */}
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
               {(() => {
                 const stats = getRoomStatsByStatus(selectedHotel, selectedRoomCategory);
                 return [
                   { key: 'available', label: 'Libres', color: 'text-green-600', bgColor: 'bg-green-400' },
                   { key: 'occupied', label: 'Occupées', color: 'text-red-600', bgColor: 'bg-red-500' },
+                  { key: 'occupied_maintenance', label: 'Occ. + Maint.', color: 'text-red-700', bgColor: 'bg-red-600' },
                   { key: 'cleaning', label: 'Ménage', color: 'text-blue-600', bgColor: 'bg-blue-500' },
                   { key: 'maintenance', label: 'Maintenance', color: 'text-orange-600', bgColor: 'bg-orange-500' },
                   { key: 'checkin', label: 'Check-in', color: 'text-green-700', bgColor: 'bg-green-600' },

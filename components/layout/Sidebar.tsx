@@ -14,7 +14,8 @@ import {
   Calculator,
   Receipt,
   DollarSign,
-  Download
+  Download,
+  Wrench
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -53,8 +54,14 @@ export default function Sidebar({ activeTab, onTabChange, features, selectedHote
     },
     { 
       id: 'reservations-calendrier', 
-      label: 'Calendrier', 
+      label: 'Disponibilité', 
       icon: Calendar, 
+      alwaysVisible: true
+    },
+    {
+      id: 'maintenance',
+      label: 'Maintenance',
+      icon: Wrench,
       alwaysVisible: true
     },
     { 
