@@ -1,82 +1,60 @@
-# Dependencies
-node_modules/
+# Dépendances de développement
+node_modules
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Build outputs
-.next/
-out/
-dist/
+# Fichiers de build
+.next
+out
+dist
 
-# Environment files
+# Fichiers de test
+coverage
+.nyc_output
+
+# Fichiers de cache
+.cache
+.parcel-cache
+
+# Fichiers de logs
+*.log
+logs
+
+# Fichiers temporaires
+.tmp
+.temp
+
+# Fichiers de configuration locale
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# IDE files
-.vscode/
-.idea/
-
-# OS files
+# Fichiers de système
 .DS_Store
 Thumbs.db
 
-# Logs
-*.log
+# Fichiers de développement
+*.tsbuildinfo
+.vscode
+.idea
 
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
+# Scripts de développement
+launch-dev.js
+clean-windows.js
+deploy-git.js
+setup-vercel-deploy.js
+diagnostic-final.js
+simulate-vercel.js
 
-# Coverage directory used by tools like istanbul
-coverage/
+# Documentation locale
+RAPPORT_NETTOYAGE_FINAL.md
 
-# nyc test coverage
-.nyc_output
+# Tests
+tests/
+*.spec.ts
+*.test.ts
 
-# Dependency directories
-jspm_packages/
-
-# Optional npm cache directory
-.npm
-
-# Optional REPL history
-.node_repl_history
-
-# Output of 'npm pack'
-*.tgz
-
-# Yarn Integrity file
-.yarn-integrity
-
-# dotenv environment variables file
-.env
-
-# parcel-bundler cache (https://parceljs.org/)
-.cache
-.parcel-cache
-
-# next.js build output
-.next
-
-# nuxt.js build output
-.nuxt
-
-# vuepress build output
-.vuepress/dist
-
-# Serverless directories
-.serverless
-
-# FuseBox cache
-.fusebox/
-
-# DynamoDB Local files
-.dynamodb/
-
-# TernJS port file
-.tern-port
+# Migrations (à gérer séparément)
+supabase/migrations/
