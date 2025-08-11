@@ -57,14 +57,7 @@ const EditOperateurPage: React.FC<EditOperateurPageProps> = ({ operateur, onSave
     telephone: operateur.telephone || '',
     statut: operateur.statut || 'actif',
     specialite: operateur.specialite || '',
-    zone_intervention: operateur.zone_intervention || '',
-    siret: operateur.siret || '',
-    adresse: operateur.adresse || '',
-    responsable: operateur.responsable || '',
-    telephone_responsable: operateur.telephone_responsable || '',
-    email_responsable: operateur.email_responsable || '',
-    agrement: operateur.agrement || '',
-    date_agrement: operateur.date_agrement || '',
+    zone_intervention: operateur.zoneIntervention || '',
     notes: operateur.notes || ''
   });
 
@@ -121,7 +114,7 @@ const EditOperateurPage: React.FC<EditOperateurPageProps> = ({ operateur, onSave
     setConventionsPrix(prev => prev.map((convention, index) => {
       if (index === conventionIndex) {
         const tarifsMensuels = convention.tarifsMensuels || {};
-        const tarifsMois = tarifsMensuels[mois] || {};
+        const tarifsMois = (tarifsMensuels as any)[mois] || {};
 
         return {
           ...convention,
@@ -242,15 +235,7 @@ const EditOperateurPage: React.FC<EditOperateurPageProps> = ({ operateur, onSave
                       required
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="siret">SIRET</Label>
-                    <Input
-                      id="siret"
-                      value={formData.siret}
-                      onChange={(e) => setFormData(prev => ({ ...prev, siret: e.target.value }))}
-                      placeholder="14 chiffres"
-                    />
-                  </div>
+
                   <div>
                     <Label htmlFor="specialite">Spécialité</Label>
                     <Input
@@ -271,15 +256,7 @@ const EditOperateurPage: React.FC<EditOperateurPageProps> = ({ operateur, onSave
                   </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="adresse">Adresse</Label>
-                  <Textarea
-                    id="adresse"
-                    value={formData.adresse}
-                    onChange={(e) => setFormData(prev => ({ ...prev, adresse: e.target.value }))}
-                    rows={3}
-                  />
-                </div>
+
 
                 <div>
                   <Label htmlFor="notes">Notes</Label>
@@ -314,37 +291,13 @@ const EditOperateurPage: React.FC<EditOperateurPageProps> = ({ operateur, onSave
                       onChange={(e) => setFormData(prev => ({ ...prev, telephone: e.target.value }))}
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="responsable">Responsable</Label>
-                    <Input
-                      id="responsable"
-                      value={formData.responsable}
-                      onChange={(e) => setFormData(prev => ({ ...prev, responsable: e.target.value }))}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="telephone_responsable">Téléphone responsable</Label>
-                    <Input
-                      id="telephone_responsable"
-                      value={formData.telephone_responsable}
-                      onChange={(e) => setFormData(prev => ({ ...prev, telephone_responsable: e.target.value }))}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="email_responsable">Email responsable</Label>
-                    <Input
-                      id="email_responsable"
-                      type="email"
-                      value={formData.email_responsable}
-                      onChange={(e) => setFormData(prev => ({ ...prev, email_responsable: e.target.value }))}
-                    />
-                  </div>
+
                   <div>
                     <Label htmlFor="statut">Statut</Label>
                     <select
                       id="statut"
                       value={formData.statut}
-                      onChange={(e) => setFormData(prev => ({ ...prev, statut: e.target.value }))}
+                      onChange={(e) => setFormData(prev => ({ ...prev, statut: e.target.value as 'actif' | 'inactif' }))}
                       className="w-full p-2 border border-gray-300 rounded-md"
                     >
                       <option value="actif">Actif</option>
@@ -358,24 +311,7 @@ const EditOperateurPage: React.FC<EditOperateurPageProps> = ({ operateur, onSave
               {/* Onglet Agrément */}
               <TabsContent value="agrement" className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="agrement">Numéro d'agrément</Label>
-                    <Input
-                      id="agrement"
-                      value={formData.agrement}
-                      onChange={(e) => setFormData(prev => ({ ...prev, agrement: e.target.value }))}
-                      placeholder="Numéro d'agrément"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="date_agrement">Date d'agrément</Label>
-                    <Input
-                      id="date_agrement"
-                      type="date"
-                      value={formData.date_agrement}
-                      onChange={(e) => setFormData(prev => ({ ...prev, date_agrement: e.target.value }))}
-                    />
-                  </div>
+
                 </div>
               </TabsContent>
 

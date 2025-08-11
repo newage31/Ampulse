@@ -705,5 +705,3 @@ export default function Dashboard({ stats, onActionClick, features, selectedHote
     </div>
   );
 }
- 
- 

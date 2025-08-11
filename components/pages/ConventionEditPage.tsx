@@ -33,12 +33,7 @@ interface TypeChambrePrix {
   prixStandard: number;
   prixConventionne: number;
   reduction: number;
-  tarifsMensuels?: {
-    [mois: string]: {
-      prixParPersonne?: number;
-      prixParChambre?: number;
-    };
-  };
+  tarifsMensuels?: any;
 }
 
 interface ConventionFormData {

@@ -122,7 +122,7 @@ const AddOperateurPage: React.FC<AddOperateurPageProps> = ({ onSave, onCancel })
     setConventionsPrix(prev => prev.map((convention, index) => {
       if (index === conventionIndex) {
         const tarifsMensuels = convention.tarifsMensuels || {};
-        const tarifsMois = tarifsMensuels[mois] || {};
+        const tarifsMois = (tarifsMensuels as any)[mois] || {};
 
         return {
           ...convention,
@@ -158,17 +158,12 @@ const AddOperateurPage: React.FC<AddOperateurPageProps> = ({ onSave, onCancel })
         organisation: formData.organisation,
         email: formData.email,
         telephone: formData.telephone,
-        statut: formData.statut as 'actif' | 'inactif' | 'suspendu',
+        statut: formData.statut as 'actif' | 'inactif',
         specialite: formData.specialite,
-        zone_intervention: formData.zone_intervention,
-        siret: formData.siret,
-        adresse: formData.adresse,
-        responsable: formData.responsable,
-        telephone_responsable: formData.telephone_responsable,
-        email_responsable: formData.email_responsable,
-        agrement: formData.agrement,
-        date_agrement: formData.date_agrement,
-        notes: formData.notes
+        zoneIntervention: formData.zone_intervention,
+        notes: formData.notes,
+        nombreReservations: 0,
+        dateCreation: new Date().toISOString()
       };
 
       // Simulation de sauvegarde

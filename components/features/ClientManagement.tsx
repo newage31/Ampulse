@@ -770,15 +770,14 @@ function ClientDetails({
     adresse: client.adresse || '',
     code_postal: client.code_postal || '',
     ville: client.ville || '',
-    pays: client.pays || 'France',
-    statut: client.statut || 'actif',
-    notes: client.notes || '',
+          pays: client.pays || 'France',
+      notes: typeof client.notes === 'string' ? client.notes : '',
     conditions_paiement: client.conditions_paiement || '30 jours',
     secteur_activite: client.secteur_activite || '',
     nombre_enfants: client.nombre_enfants || 0,
     siret: client.siret || '',
     numero_agrement: client.numero_agrement || '',
-    nombre_adherents: client.nombre_adherents || null
+          nombre_adherents: client.nombre_adherents || undefined
   });
 
   const handleSave = async () => {
@@ -798,7 +797,6 @@ function ClientDetails({
           p_code_postal: formData.code_postal,
           p_ville: formData.ville,
           p_pays: formData.pays,
-          p_statut: formData.statut,
           p_notes: formData.notes,
           p_conditions_paiement: formData.conditions_paiement,
           p_secteur_activite: formData.secteur_activite,
@@ -839,14 +837,13 @@ function ClientDetails({
       code_postal: client.code_postal || '',
       ville: client.ville || '',
       pays: client.pays || 'France',
-      statut: client.statut || 'actif',
-      notes: client.notes || '',
+      notes: typeof client.notes === 'string' ? client.notes : '',
       conditions_paiement: client.conditions_paiement || '30 jours',
       secteur_activite: client.secteur_activite || '',
       nombre_enfants: client.nombre_enfants || 0,
       siret: client.siret || '',
       numero_agrement: client.numero_agrement || '',
-      nombre_adherents: client.nombre_adherents || null
+      nombre_adherents: client.nombre_adherents || undefined
     });
   };
 
@@ -972,20 +969,7 @@ function ClientDetails({
                         onChange={(e) => setFormData({...formData, telephone_mobile: e.target.value})}
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="edit-statut">Statut</Label>
-                      <select
-                        id="edit-statut"
-                        className="w-full p-2 border border-gray-300 rounded-md"
-                        value={formData.statut || 'actif'}
-                        onChange={(e) => setFormData({...formData, statut: e.target.value})}
-                      >
-                        <option value="actif">Actif</option>
-                        <option value="inactif">Inactif</option>
-                        <option value="prospect">Prospect</option>
-                        <option value="archive">Archivé</option>
-                      </select>
-                    </div>
+
                   </div>
 
                   {/* Adresse */}

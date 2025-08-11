@@ -9,15 +9,15 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/"
+      "dest": "/$1"
     }
   ],
   "env": {
-    "NEXT_PUBLIC_SUPABASE_URL": "https://lirebtpsrbdgkdeyggdr.supabase.co",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxpcmVidHBzcmJkZ2tkZXlnZ2RyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM5MTcxNDIsImV4cCI6MjA2OTQ5MzE0Mn0.Re93uVdj46ng_PviwqdtKum0Z5FRY7fqiTOkyJZmvdk"
+    "NEXT_PUBLIC_SUPABASE_URL": "@supabase_url",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase_anon_key"
   },
   "functions": {
-    "app/api/**/*.js": {
+    "app/api/**/*.ts": {
       "maxDuration": 30
     }
   }

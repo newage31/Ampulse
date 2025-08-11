@@ -174,7 +174,7 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
         // Filtrer les résultats par capacité si nécessaire
         let filteredRooms = transformedRooms;
         if (numberOfGuests > 1) {
-          filteredRooms = transformedRooms.filter(room => room.capacity >= numberOfGuests);
+          filteredRooms = transformedRooms.filter((room: any) => room.capacity >= numberOfGuests);
         }
         
         setAvailableRooms(filteredRooms);
@@ -256,7 +256,7 @@ export default function ReservationsAvailability({ reservations, hotels, selecte
           
           // Filtrer par caractéristique si spécifiée
           if (selectedCharacteristic !== 'all') {
-            const hasCharacteristic = Object.values(characteristics).some(char => 
+                        const hasCharacteristic = Object.values(characteristics).some((char: any) =>
               typeof char === 'string' && char.toLowerCase().includes(selectedCharacteristic.toLowerCase())
             );
             if (!hasCharacteristic) {

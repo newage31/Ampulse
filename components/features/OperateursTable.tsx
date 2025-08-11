@@ -728,7 +728,7 @@ export default function OperateursTable({ operateurs, onOperateurSelect, onAddOp
                         id="nombre_employes"
                         type="number"
                         value={editFormData.nombre_employes || ''}
-                        onChange={(e) => setEditFormData(prev => ({ ...prev, nombre_employes: parseInt(e.target.value) || null }))}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, nombre_employes: parseInt(e.target.value) || undefined }))}
                       />
                     </div>
                   )}
@@ -740,7 +740,7 @@ export default function OperateursTable({ operateurs, onOperateurSelect, onAddOp
                         id="nombre_adherents"
                         type="number"
                         value={editFormData.nombre_adherents || ''}
-                        onChange={(e) => setEditFormData(prev => ({ ...prev, nombre_adherents: parseInt(e.target.value) || null }))}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, nombre_adherents: parseInt(e.target.value) || undefined }))}
                       />
                     </div>
                   )}
@@ -752,7 +752,7 @@ export default function OperateursTable({ operateurs, onOperateurSelect, onAddOp
                         id="nombre_enfants"
                         type="number"
                         value={editFormData.nombre_enfants || ''}
-                        onChange={(e) => setEditFormData(prev => ({ ...prev, nombre_enfants: parseInt(e.target.value) || null }))}
+                        onChange={(e) => setEditFormData(prev => ({ ...prev, nombre_enfants: parseInt(e.target.value) || undefined }))}
                       />
                     </div>
                   )}
@@ -820,7 +820,7 @@ export default function OperateursTable({ operateurs, onOperateurSelect, onAddOp
                   <select
                     id="statut"
                     value={editFormData.statut || 'actif'}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, statut: e.target.value }))}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, statut: e.target.value as 'actif' | 'inactif' | 'prospect' | 'archive' }))}
                     className="w-full p-2 border border-gray-300 rounded-md"
                   >
                     <option value="actif">Actif</option>
@@ -843,15 +843,7 @@ export default function OperateursTable({ operateurs, onOperateurSelect, onAddOp
                       placeholder="Ex: 30 jours"
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="iban">IBAN</Label>
-                    <Input
-                      id="iban"
-                      value={editFormData.iban || ''}
-                      onChange={(e) => setEditFormData(prev => ({ ...prev, iban: e.target.value }))}
-                      placeholder="FR76 XXXX XXXX XXXX XXXX XXXX XXX"
-                    />
-                  </div>
+
                 </div>
 
                 <div>

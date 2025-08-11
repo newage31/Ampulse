@@ -97,8 +97,8 @@ export default function ReservationsTable({ reservations, processus, hotels = []
 
   const filteredReservations = reservations.filter(reservation => {
     // Utiliser les données de détails si disponibles, sinon des valeurs par défaut
-    const usagerName = reservation.usagerDetails ? `${reservation.usagerDetails.nom} ${reservation.usagerDetails.prenom}` : 'Usager non spécifié';
-    const hotelName = reservation.hotelDetails ? reservation.hotelDetails.nom : 'Hôtel non spécifié';
+    const usagerName = reservation.usager || 'Usager non spécifié';
+    const hotelName = reservation.hotel || 'Hôtel non spécifié';
     const prescripteur = reservation.prescripteur || 'Non spécifié';
     
     const matchesSearch = 
@@ -121,8 +121,8 @@ export default function ReservationsTable({ reservations, processus, hotels = []
     
     const matchesDate = dateFilter === 'all' || (() => {
       const today = new Date();
-      const arrivalDate = new Date(reservation.date_arrivee);
-      const departureDate = new Date(reservation.date_depart);
+      const arrivalDate = new Date(reservation.dateArrivee);
+      const departureDate = new Date(reservation.dateDepart);
       
       if (dateFilter === 'today') return arrivalDate.toDateString() === today.toDateString();
       if (dateFilter === 'week') {
@@ -164,16 +164,16 @@ export default function ReservationsTable({ reservations, processus, hotels = []
       }
 
       // Préparer les variables pour le template
-      const usagerName = reservation.usagerDetails ? `${reservation.usagerDetails.nom} ${reservation.usagerDetails.prenom}` : 'Usager non spécifié';
-      const hotelName = reservation.hotelDetails ? reservation.hotelDetails.nom : 'Hôtel non spécifié';
-      const chambreNum = reservation.chambreDetails ? reservation.chambreDetails.numero : 'Non spécifiée';
+      const usagerName = reservation.usager || 'Usager non spécifié';
+      const hotelName = reservation.hotel || 'Hôtel non spécifié';
+      const chambreNum = reservation.chambre || 'Non spécifiée';
       
       const variables = {
         usager: usagerName,
         hotel: hotelName,
         chambre: chambreNum,
-        dateArrivee: new Date(reservation.date_arrivee).toLocaleDateString('fr-FR'),
-        dateDepart: new Date(reservation.date_depart).toLocaleDateString('fr-FR'),
+        dateArrivee: new Date(reservation.dateArrivee).toLocaleDateString('fr-FR'),
+        dateDepart: new Date(reservation.dateDepart).toLocaleDateString('fr-FR'),
         prix: reservation.prix.toString(),
         prescripteur: reservation.prescripteur || 'Non spécifié',
         conditions: 'Conditions standard'
@@ -385,7 +385,7 @@ export default function ReservationsTable({ reservations, processus, hotels = []
                         <div className="flex items-center">
                           <User className="h-4 w-4 mr-2 text-gray-400" />
                           <div className="font-medium text-gray-900">
-                            {reservation.usagerDetails ? `${reservation.usagerDetails.nom} ${reservation.usagerDetails.prenom}` : 'Usager non spécifié'}
+                            {reservation.usager || 'Usager non spécifié'}
                           </div>
                         </div>
                       </td>
@@ -393,22 +393,22 @@ export default function ReservationsTable({ reservations, processus, hotels = []
                         <div className="flex items-center">
                           <Building2 className="h-4 w-4 mr-2 text-gray-400" />
                           <span className="text-gray-700">
-                            {reservation.hotelDetails ? reservation.hotelDetails.nom : 'Hôtel non spécifié'}
+                            {reservation.hotel || 'Hôtel non spécifié'}
                           </span>
                         </div>
                       </td>
                       <td className="py-4 px-4">
                         <span className="text-gray-700">
-                          {reservation.chambreDetails ? reservation.chambreDetails.numero : 'Non spécifiée'}
+                          {reservation.chambre || 'Non spécifiée'}
                         </span>
                       </td>
                       <td className="py-4 px-4">
                         <div className="text-sm">
                           <div className="text-gray-900">
-                            {new Date(reservation.date_arrivee).toLocaleDateString('fr-FR')}
+                            {new Date(reservation.dateArrivee).toLocaleDateString('fr-FR')}
                           </div>
                           <div className="text-gray-500">
-                            {new Date(reservation.date_depart).toLocaleDateString('fr-FR')}
+                            {new Date(reservation.dateDepart).toLocaleDateString('fr-FR')}
                           </div>
                           <div className="text-xs text-gray-400">
                             {reservation.duree} jour(s)

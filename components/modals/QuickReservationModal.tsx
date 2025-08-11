@@ -435,7 +435,7 @@ export default function QuickReservationModal({
                         </Badge>
                       ))
                     : roomData.characteristics && typeof roomData.characteristics === 'string' 
-                      ? roomData.characteristics.split(',').map((char, index) => (
+                      ? (roomData.characteristics as string).split(',').map((char, index) => (
                           <Badge key={index} variant="outline" className="text-xs">
                             {char.trim()}
                           </Badge>

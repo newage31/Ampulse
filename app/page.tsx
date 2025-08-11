@@ -437,7 +437,7 @@ export default function Home() {
         return (
           <ComptabilitePage 
             hotels={hotels} 
-            selectedHotelId={selectedHotel}
+            selectedHotelId={selectedHotel || undefined}
             activeSubTab={activeTab}
           />
         );
@@ -452,7 +452,12 @@ export default function Home() {
               users={users}
               templates={templates}
               operateurs={filteredOperateurs}
-              reservations={reservations}
+              reservations={reservations.map(reservation => ({
+                id: reservation.id,
+                numero: reservation.chambre || '',
+                usager: reservation.usager || '',
+                hotel: reservation.hotel || ''
+              }))}
               agents={users.map(user => ({
                 id: user.id,
                 nom: user.nom,

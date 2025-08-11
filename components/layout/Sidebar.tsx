@@ -107,7 +107,7 @@ export default function Sidebar({ activeTab, onTabChange, features, selectedHote
 
   const visibleTabs = tabs.filter(tab => {
     try {
-      return tab.alwaysVisible || (tab.feature && currentFeatures[tab.feature as keyof typeof currentFeatures]);
+      return tab.alwaysVisible;
     } catch (error) {
       console.error('Erreur lors du filtrage des onglets:', error);
       return tab.alwaysVisible; // En cas d'erreur, afficher seulement les onglets toujours visibles

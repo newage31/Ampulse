@@ -123,7 +123,14 @@ export default function ParametresPage({
 
   const handleAddHotel = () => {
     if (newHotel.nom.trim() && onHotelCreate) {
-      onHotelCreate(newHotel);
+      onHotelCreate({
+        ...newHotel,
+        gestionnaire: '',
+        statut: 'actif',
+        chambresTotal: 0,
+        chambresOccupees: 0,
+        tauxOccupation: 0
+      });
       setNewHotel({
         nom: '',
         adresse: '',

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import ReservationsCalendar from '../features/ReservationsCalendar';
 import ReservationsTable from '../features/ReservationsTable';
 import ReservationsAvailability from '../features/ReservationsAvailability';
+import ReservationsDashboard from '../features/ReservationsDashboard';
 import ReservationDetailPage from './ReservationDetailPage';
 import { ProlongationModal, EndCareModal } from '../modals/Modals';
 import NewReservationModal from '../modals/NewReservationModal';
@@ -243,6 +244,11 @@ export default function ReservationsPage({
       // Transformer les données pour correspondre au format attendu
       const transformedReservations: ReservationWithDetails[] = data?.map(reservation => ({
         id: reservation.id,
+        usager: reservation.usagerDetails?.nom || 'Usager non spécifié',
+        chambre: reservation.chambreDetails?.numero || 'Chambre non spécifiée',
+        hotel: reservation.hotelDetails?.nom || 'Hôtel non spécifié',
+        dateArrivee: reservation.date_arrivee,
+        dateDepart: reservation.date_depart,
         usager_id: reservation.usager_id,
         chambre_id: reservation.chambre_id,
         hotel_id: reservation.hotel_id,
